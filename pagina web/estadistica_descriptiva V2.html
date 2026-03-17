@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estadística Descriptiva · SENA</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --surface: #16161f;
+    --surface2: #1e1e2a;
+    --accent: #7c5cfc;
+    --accent2: #00d4ff;
+    --accent3: #ff6b6b;
+    --accent4: #ffd166;
+    --accent5: #06d6a0;
+    --text: #f0eeff;
+    --text2: #9d9bbf;
+    --border: rgba(124,92,252,0.2);
+    --glow: rgba(124,92,252,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR — Símbolo estadístico */
+  .cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    will-change: left, top;
+  }
+
+  .cursor-symbol {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--accent2);
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(0,212,255,0.9)) drop-shadow(0 0 20px rgba(0,212,255,0.5));
+    animation: cursorSpin 4s linear infinite;
+    display: block;
+    transition: color 0.2s, filter 0.2s;
+  }
+
+  @keyframes cursorSpin {
+    0%   { transform: rotate(0deg) scale(1); }
+    25%  { transform: rotate(0deg) scale(1.15); }
+    50%  { transform: rotate(0deg) scale(1); }
+    75%  { transform: rotate(0deg) scale(0.9); }
+    100% { transform: rotate(0deg) scale(1); }
+  }
+
+  .cursor-follower {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: left 0.15s ease, top 0.15s ease;
+    will-change: left, top;
+  }
+
+  .cursor-trail {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    animation: trailFade 0.6s ease forwards;
+  }
+
+  @keyframes trailFade {
+    0%   { opacity: 0.7; transform: translate(-50%,-50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(0); }
+  }
+
+  /* Symbols that cycle on the cursor */
+  .cursor-ring {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,212,255,0.25);
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    animation: ringPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes ringPulse {
+    0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 0.4; }
+    50%       { transform: translate(-50%,-50%) scale(1.4); opacity: 0; }
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,92,252,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,212,255,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 20% 60%, rgba(255,107,107,0.06) 0%, transparent 50%);
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,92,252,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,92,252,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  }
+
+  .floating-nums {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .floating-num {
+    position: absolute;
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    color: var(--accent);
+    opacity: 0.12;
+    animation: floatUp linear infinite;
+  }
+
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.12; }
+    90% { opacity: 0.12; }
+    100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+  }
+
+  .hero-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(124,92,252,0.1);
+    border: 1px solid var(--border);
+    padding: 0.4rem 1.2rem;
+    border-radius: 100px;
+    margin-bottom: 2rem;
+    display: inline-block;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 10vw, 7rem);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+    animation: fadeDown 0.8s 0.1s ease both;
+  }
+
+  .hero-title span {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent5) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--text2);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    animation: fadeDown 0.8s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    animation: fadeDown 0.8s 0.3s ease both;
+  }
+
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    padding: 0.85rem 2rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 0 30px rgba(124,92,252,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 50px rgba(124,92,252,0.5);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+    transform: translateY(-3px);
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text2);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    font-family: 'Space Mono', monospace;
+    animation: fadeDown 1s 0.6s ease both;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scrollLine 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollLine {
+    0%, 100% { opacity: 1; transform: scaleY(1); }
+    50% { opacity: 0.4; transform: scaleY(0.6); }
+  }
+
+  /* NAV */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 900;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    background: rgba(10,10,15,0.7);
+    border-bottom: 1px solid rgba(124,92,252,0.1);
+    transition: all 0.3s ease;
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 0.3rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--text2);
+    text-decoration: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .nav-links a:hover {
+    color: var(--accent);
+    background: rgba(124,92,252,0.1);
+  }
+
+  /* SECTIONS */
+  section { position: relative; }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .section-title em {
+    font-style: italic;
+    color: var(--accent2);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .section-pad { padding: 8rem 0; }
+
+  /* CONCEPT SECTION */
+  #definicion {
+    background: var(--bg);
+  }
+
+  .concept-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .concept-text h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+    font-weight: 700;
+  }
+
+  .concept-text p {
+    color: var(--text2);
+    line-height: 1.8;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .concept-visual {
+    position: relative;
+  }
+
+  .stat-ring-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .stat-ring {
+    width: 320px; height: 320px;
+    position: relative;
+  }
+
+  .stat-ring svg {
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .ring-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .ring-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text2);
+    letter-spacing: 0.15em;
+    margin-top: 0.3rem;
+  }
+
+  /* VARIABLES SECTION */
+  #variables {
+    background: var(--bg2);
+  }
+
+  .vars-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .var-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .var-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 16px;
+  }
+
+  .var-card:nth-child(1)::before { background: linear-gradient(135deg, rgba(124,92,252,0.08), transparent); }
+  .var-card:nth-child(2)::before { background: linear-gradient(135deg, rgba(0,212,255,0.08), transparent); }
+  .var-card:nth-child(3)::before { background: linear-gradient(135deg, rgba(6,214,160,0.08), transparent); }
+  .var-card:nth-child(4)::before { background: linear-gradient(135deg, rgba(255,209,102,0.08), transparent); }
+
+  .var-card:hover::before { opacity: 1; }
+  .var-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent);
+    box-shadow: 0 20px 60px rgba(124,92,252,0.15);
+  }
+
+  .var-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .var-card:nth-child(1) .var-icon { background: rgba(124,92,252,0.15); }
+  .var-card:nth-child(2) .var-icon { background: rgba(0,212,255,0.15); }
+  .var-card:nth-child(3) .var-icon { background: rgba(6,214,160,0.15); }
+  .var-card:nth-child(4) .var-icon { background: rgba(255,209,102,0.15); }
+
+  .var-type {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .var-card:nth-child(1) .var-type { color: var(--accent); }
+  .var-card:nth-child(2) .var-type { color: var(--accent2); }
+  .var-card:nth-child(3) .var-type { color: var(--accent5); }
+  .var-card:nth-child(4) .var-type { color: var(--accent4); }
+
+  .var-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+  }
+
+  .var-desc {
+    color: var(--text2);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .var-example {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text2);
+    background: rgba(255,255,255,0.04);
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    border-left: 3px solid;
+  }
+
+  .var-card:nth-child(1) .var-example { border-color: var(--accent); }
+  .var-card:nth-child(2) .var-example { border-color: var(--accent2); }
+  .var-card:nth-child(3) .var-example { border-color: var(--accent5); }
+  .var-card:nth-child(4) .var-example { border-color: var(--accent4); }
+
+  /* MEDIDAS SECTION */
+  #medidas {
+    background: var(--bg);
+  }
+
+  .medidas-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+    background: var(--surface);
+    padding: 0.4rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 120px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text2);
+    background: transparent;
+    transition: all 0.3s ease;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 20px rgba(124,92,252,0.35);
+  }
+
+  .tab-panel {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .tab-panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .measure-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .measure-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .measure-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+
+  .measure-info p {
+    color: var(--text2);
+    line-height: 1.8;
+    margin-bottom: 1.2rem;
+  }
+
+  .formula-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    text-align: center;
+    color: var(--accent2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .formula-box::before {
+    content: 'FÓRMULA';
+    position: absolute;
+    top: 0.5rem; left: 0.8rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--text2);
+    opacity: 0.6;
+  }
+
+  .formula-box .formula-text {
+    font-size: 1.1rem;
+    padding-top: 0.5rem;
+  }
+
+  /* INTERACTIVE CALCULATOR */
+  .calc-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+  }
+
+  .calc-box h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .calc-box h4::before {
+    content: '⚡';
+  }
+
+  .calc-input-wrap {
+    margin-bottom: 1rem;
+  }
+
+  .calc-input-wrap label {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--text2);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  .calc-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .calc-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124,92,252,0.15);
+  }
+
+  .calc-btn {
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.85rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+    margin-top: 1rem;
+  }
+
+  .calc-btn:hover {
+    background: #6a4adf;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(124,92,252,0.35);
+  }
+
+  .calc-result {
+    margin-top: 1.5rem;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1.2rem;
+    display: none;
+  }
+
+  .calc-result.show { display: block; animation: fadeIn 0.3s ease; }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .result-row:last-child { border-bottom: none; }
+
+  .result-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .result-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  /* DISPERSIÓN */
+  #dispersion { background: var(--bg2); }
+
+  .disp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .disp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .disp-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent3);
+    box-shadow: 0 20px 50px rgba(255,107,107,0.1);
+  }
+
+  .disp-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--accent3);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .disp-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .disp-desc {
+    font-size: 0.85rem;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* GRAFICOS */
+  #graficos { background: var(--bg); }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 4rem;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .chart-card:hover {
+    border-color: var(--accent5);
+    transform: scale(1.03);
+    box-shadow: 0 10px 40px rgba(6,214,160,0.1);
+  }
+
+  .chart-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.8rem;
+  }
+
+  .chart-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .chart-use {
+    font-size: 0.78rem;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* INTERACTIVE CHART DEMO */
+  .chart-demo-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+  }
+
+  .chart-demo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .chart-demo-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .chart-type-selector {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .chart-type-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .chart-type-btn.active, .chart-type-btn:hover {
+    background: var(--accent5);
+    color: var(--bg);
+    border-color: var(--accent5);
+  }
+
+  #chartCanvas {
+    width: 100%;
+    height: 280px;
+    display: block;
+  }
+
+  /* POBLACIÓN */
+  #poblacion { background: var(--bg2); }
+
+  .pop-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .pop-visual {
+    position: relative;
+  }
+
+  .pop-dots {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+  }
+
+  .pop-dot {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .pop-dot.population {
+    background: rgba(124,92,252,0.25);
+    border: 1.5px solid rgba(124,92,252,0.4);
+  }
+
+  .pop-dot.sample {
+    background: var(--accent);
+    border: 1.5px solid var(--accent);
+    box-shadow: 0 0 8px rgba(124,92,252,0.5);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(124,92,252,0.5); }
+    50% { box-shadow: 0 0 20px rgba(124,92,252,0.8); }
+  }
+
+  .pop-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pop-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text2);
+  }
+
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+  }
+
+  .pop-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+  }
+
+  .pop-info p {
+    color: var(--text2);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+  }
+
+  .pop-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .pop-mini-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+  }
+
+  .pop-mini-card .pmini-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .pop-mini-card .pmini-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .pop-mini-card .pmini-desc {
+    font-size: 0.8rem;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* QUIZ */
+  #quiz { background: var(--bg); }
+
+  .quiz-box {
+    max-width: 700px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3rem;
+  }
+
+  .quiz-progress {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 2rem;
+  }
+
+  .quiz-prog-dot {
+    height: 4px;
+    flex: 1;
+    border-radius: 2px;
+    background: var(--surface2);
+    transition: background 0.3s;
+  }
+
+  .quiz-prog-dot.done { background: var(--accent5); }
+  .quiz-prog-dot.current { background: var(--accent); }
+
+  .quiz-q-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text2);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .quiz-question {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 2rem;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .quiz-option {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .quiz-option:hover {
+    border-color: var(--accent);
+    background: rgba(124,92,252,0.08);
+  }
+
+  .quiz-option.correct {
+    border-color: var(--accent5);
+    background: rgba(6,214,160,0.12);
+    color: var(--accent5);
+  }
+
+  .quiz-option.wrong {
+    border-color: var(--accent3);
+    background: rgba(255,107,107,0.1);
+    color: var(--accent3);
+  }
+
+  .opt-letter {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  .quiz-feedback {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    display: none;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .quiz-feedback.show { display: block; animation: fadeIn 0.3s ease; }
+  .quiz-feedback.correct-fb { background: rgba(6,214,160,0.1); color: var(--accent5); border: 1px solid rgba(6,214,160,0.2); }
+  .quiz-feedback.wrong-fb { background: rgba(255,107,107,0.1); color: var(--accent3); border: 1px solid rgba(255,107,107,0.2); }
+
+  .quiz-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .quiz-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text2);
+  }
+
+  .quiz-result {
+    text-align: center;
+    display: none;
+  }
+
+  .quiz-result.show { display: block; animation: fadeIn 0.5s ease; }
+
+  .score-big {
+    font-family: 'Playfair Display', serif;
+    font-size: 5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .score-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text2);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    display: block;
+  }
+
+  .quiz-result p {
+    color: var(--text2);
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 4rem 0 2rem;
+    text-align: center;
+  }
+
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .footer-text {
+    color: var(--text2);
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
+
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .footer-bottom p {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text2);
+    letter-spacing: 0.1em;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* GLOSARIO SECTION */
+  #glosario { background: var(--bg2); }
+
+  .glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+
+  .gloss-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+  }
+
+  .gloss-item:hover {
+    border-color: var(--accent4);
+    transform: translateY(-4px);
+  }
+
+  .gloss-term {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent4);
+    margin-bottom: 0.5rem;
+  }
+
+  .gloss-def {
+    font-size: 0.85rem;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .concept-grid, .measure-layout, .pop-layout { grid-template-columns: 1fr; }
+    .vars-grid { grid-template-columns: 1fr; }
+    .disp-grid { grid-template-columns: 1fr; }
+    .charts-grid { grid-template-columns: repeat(2, 1fr); }
+    .glossary-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .pop-cards { grid-template-columns: 1fr; }
+    .stat-ring { width: 240px; height: 240px; }
+  }
+
+  /* Highlight bar anim for hero */
+  .hero-bar {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<!-- CURSOR — Símbolo estadístico -->
+<div class="cursor" id="cursor">
+  <span class="cursor-symbol" id="cursorSymbol">Σ</span>
+  <div class="cursor-ring"></div>
+</div>
+<div class="cursor-follower" id="cursorFollower"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">Estadística</div>
+  <ul class="nav-links">
+    <li><a href="#definicion">Definición</a></li>
+    <li><a href="#variables">Variables</a></li>
+    <li><a href="#medidas">Medidas</a></li>
+    <li><a href="#dispersion">Dispersión</a></li>
+    <li><a href="#graficos">Gráficos</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="inicio">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="floating-nums" id="floatingNums"></div>
+
+  <div style="position:relative; z-index:10;">
+    <span class="hero-tag">SENA · Programa de Formación Titulada</span>
+    <h1 class="hero-title">
+      Estadística<br><span>Descriptiva</span>
+    </h1>
+    <p class="hero-subtitle">
+      La ciencia de transformar datos en conocimiento. Aprende a recolectar, organizar, resumir y presentar información de manera clara y poderosa.
+    </p>
+    <div class="hero-cta">
+      <a href="#definicion" class="btn btn-primary">Comenzar ↓</a>
+      <a href="#quiz" class="btn btn-outline">Ir al Quiz →</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>SCROLL</span>
+  </div>
+  <div class="hero-bar"></div>
+</section>
+
+<!-- DEFINICIÓN -->
+<section id="definicion" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">01 · Fundamentos</span>
+      <h2 class="section-title">¿Qué es la Estadística <em>Descriptiva</em>?</h2>
+    </div>
+
+    <div class="concept-grid">
+      <div class="concept-text reveal">
+        <h3>La rama que describe los datos</h3>
+        <p>La estadística descriptiva es la rama de la estadística encargada de <strong>recolectar, organizar, resumir y presentar datos</strong> de manera clara y comprensible, sin hacer inferencias más allá del conjunto de datos analizado.</p>
+        <p>Su objetivo es describir las características principales de un conjunto de datos mediante medidas numéricas y representaciones gráficas. Es la base de todo análisis cuantitativo.</p>
+        <p>A diferencia de la estadística inferencial, la estadística descriptiva <strong>no busca generalizar</strong> más allá de los datos disponibles. Se limita a describir lo que "ve".</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:2rem;">
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.2rem;">
+            <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--accent); letter-spacing:0.2em; text-transform:uppercase; display:block; margin-bottom:0.4rem;">Usos</span>
+            <p style="font-size:0.85rem; color:var(--text2); margin:0; line-height:1.6;">Censos, encuestas, informes de calidad, análisis de notas académicas.</p>
+          </div>
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.2rem;">
+            <span style="font-family:'Space Mono',monospace; font-size:0.6rem; color:var(--accent2); letter-spacing:0.2em; text-transform:uppercase; display:block; margin-bottom:0.4rem;">Etapas</span>
+            <p style="font-size:0.85rem; color:var(--text2); margin:0; line-height:1.6;">Recolección → Organización → Resumen → Presentación.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="concept-visual reveal">
+        <div class="stat-ring-wrap">
+          <div class="stat-ring">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <!-- Background circle -->
+              <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(124,92,252,0.1)" stroke-width="20"/>
+              <!-- Arcs for each pillar -->
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#7c5cfc" stroke-width="20"
+                stroke-dasharray="502" stroke-dashoffset="502"
+                stroke-linecap="round" id="ring1"/>
+              <circle cx="100" cy="100" r="60" fill="none" stroke="#00d4ff" stroke-width="16"
+                stroke-dasharray="377" stroke-dashoffset="377"
+                stroke-linecap="round" id="ring2"/>
+              <circle cx="100" cy="100" r="42" fill="none" stroke="#06d6a0" stroke-width="12"
+                stroke-dasharray="264" stroke-dashoffset="264"
+                stroke-linecap="round" id="ring3"/>
+              <circle cx="100" cy="100" r="27" fill="none" stroke="#ffd166" stroke-width="8"
+                stroke-dasharray="170" stroke-dashoffset="170"
+                stroke-linecap="round" id="ring4"/>
+            </svg>
+            <div class="ring-center">
+              <span class="ring-label" id="ringLabel">Datos</span>
+              <span class="ring-sub" id="ringSub">ESTADÍSTICA</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:0.5rem; justify-content:center; margin-top:1.5rem;">
+          <span style="font-family:'Space Mono',monospace; font-size:0.65rem; padding:0.3rem 0.8rem; border-radius:100px; background:rgba(124,92,252,0.15); color:var(--accent);">Recolección</span>
+          <span style="font-family:'Space Mono',monospace; font-size:0.65rem; padding:0.3rem 0.8rem; border-radius:100px; background:rgba(0,212,255,0.15); color:var(--accent2);">Organización</span>
+          <span style="font-family:'Space Mono',monospace; font-size:0.65rem; padding:0.3rem 0.8rem; border-radius:100px; background:rgba(6,214,160,0.15); color:var(--accent5);">Resumen</span>
+          <span style="font-family:'Space Mono',monospace; font-size:0.65rem; padding:0.3rem 0.8rem; border-radius:100px; background:rgba(255,209,102,0.15); color:var(--accent4);">Presentación</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POBLACIÓN -->
+<section id="poblacion" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">02 · Conceptos Clave</span>
+      <h2 class="section-title">Población y <em>Muestra</em></h2>
+    </div>
+
+    <div class="pop-layout">
+      <div class="pop-info reveal">
+        <h3>¿Quiénes son los sujetos de estudio?</h3>
+        <p>La <strong>población</strong> es el conjunto total de elementos que comparten una característica común y sobre los cuales se desea obtener información. La <strong>muestra</strong> es un subconjunto representativo de esa población.</p>
+        <p>El <strong>elemento</strong> es cada individuo u objeto de la población. La <strong>variable</strong> es la característica medible, y el <strong>dato</strong> es el valor específico que toma esa variable.</p>
+
+        <div class="pop-cards">
+          <div class="pop-mini-card">
+            <span class="pmini-label">Tipo 1</span>
+            <div class="pmini-name">Población Finita</div>
+            <div class="pmini-desc">Número contable de elementos. Ej: estudiantes de un curso, empleados de una empresa.</div>
+          </div>
+          <div class="pop-mini-card">
+            <span class="pmini-label">Tipo 2</span>
+            <div class="pmini-name">Población Infinita</div>
+            <div class="pmini-desc">Número ilimitado o muy grande de elementos. Ej: estrellas del universo, bacterias.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pop-visual reveal">
+        <div class="pop-dots" id="popDots"></div>
+        <div class="pop-legend">
+          <div class="pop-legend-item">
+            <div class="legend-dot" style="background:rgba(124,92,252,0.4); border:1.5px solid rgba(124,92,252,0.6);"></div>
+            <span>Población (N = 80)</span>
+          </div>
+          <div class="pop-legend-item">
+            <div class="legend-dot" style="background:var(--accent);"></div>
+            <span>Muestra (n = 20)</span>
+          </div>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text2); margin-top:1rem; font-family:'Space Mono',monospace; line-height:1.6;">
+          Los puntos brillantes representan la muestra seleccionada aleatoriamente de la población total.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VARIABLES -->
+<section id="variables" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">03 · Tipos</span>
+      <h2 class="section-title">Variables <em>Estadísticas</em></h2>
+    </div>
+
+    <div class="vars-grid">
+      <div class="var-card reveal">
+        <div class="var-icon">🏷️</div>
+        <span class="var-type">Cualitativa</span>
+        <div class="var-name">Nominal</div>
+        <div class="var-desc">Categorías sin ningún orden o jerarquía entre ellas. Los valores solo permiten clasificar o identificar, no comparar magnitudes.</div>
+        <div class="var-example">Ejemplos: Color, género, ciudad, nacionalidad, marca de auto</div>
+      </div>
+
+      <div class="var-card reveal">
+        <div class="var-icon">📊</div>
+        <span class="var-type">Cualitativa</span>
+        <div class="var-name">Ordinal</div>
+        <div class="var-desc">Categorías que sí tienen un orden o jerarquía definida, aunque las distancias entre categorías no sean iguales ni medibles.</div>
+        <div class="var-example">Ejemplos: Nivel educativo, satisfacción (1-5), talla (S,M,L,XL)</div>
+      </div>
+
+      <div class="var-card reveal">
+        <div class="var-icon">🔢</div>
+        <span class="var-type">Cuantitativa</span>
+        <div class="var-name">Discreta</div>
+        <div class="var-desc">Toma valores enteros contables. No existen valores intermedios entre dos valores consecutivos; se cuentan, no se miden.</div>
+        <div class="var-example">Ejemplos: Número de hijos, errores en código, cantidad de autos</div>
+      </div>
+
+      <div class="var-card reveal">
+        <div class="var-icon">📈</div>
+        <span class="var-type">Cuantitativa</span>
+        <div class="var-name">Continua</div>
+        <div class="var-desc">Puede tomar cualquier valor dentro de un rango continuo, incluyendo decimales. Se mide con instrumentos de precisión.</div>
+        <div class="var-example">Ejemplos: Peso, temperatura, tiempo, estatura, distancia</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MEDIDAS DE TENDENCIA -->
+<section id="medidas" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">04 · Análisis</span>
+      <h2 class="section-title">Medidas de Tendencia <em>Central</em></h2>
+    </div>
+
+    <div class="medidas-tabs reveal">
+      <button class="tab-btn active" onclick="showTab('media')">Media</button>
+      <button class="tab-btn" onclick="showTab('geom')">Media Geométrica</button>
+      <button class="tab-btn" onclick="showTab('mediana')">Mediana</button>
+      <button class="tab-btn" onclick="showTab('moda')">Moda</button>
+    </div>
+
+    <!-- MEDIA -->
+    <div class="tab-panel active" id="tab-media">
+      <div class="measure-layout">
+        <div class="measure-info reveal">
+          <h3>Media Aritmética</h3>
+          <span class="measure-tag">Promedio · Valor Central Ponderado</span>
+          <p>La media aritmética es la medida de tendencia central más utilizada. Consiste en sumar todos los valores del conjunto de datos y dividir entre el número total de elementos (n).</p>
+          <p>Es sensible a los valores extremos (outliers). Si existen datos muy alejados del resto, la media puede no ser representativa del conjunto.</p>
+          <div class="formula-box">
+            <div class="formula-text">x̄ = (x₁ + x₂ + ... + xₙ) / n</div>
+          </div>
+          <p style="font-size:0.85rem;"><strong>Cuándo usarla:</strong> Datos simétricos sin valores atípicos. Ideal para salarios promedio, temperatura media, calificaciones.</p>
+        </div>
+        <div class="calc-box reveal">
+          <h4>Calculadora Interactiva</h4>
+          <div class="calc-input-wrap">
+            <label>Ingresa los datos separados por comas</label>
+            <input class="calc-input" id="mediaInput" type="text" placeholder="4, 6, 8, 10, 12" value="4, 6, 8, 10, 12">
+          </div>
+          <button class="calc-btn" onclick="calcMedia()">Calcular Media →</button>
+          <div class="calc-result" id="mediaResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEDIA GEOMÉTRICA -->
+    <div class="tab-panel" id="tab-geom">
+      <div class="measure-layout">
+        <div class="measure-info reveal">
+          <h3>Media Geométrica</h3>
+          <span class="measure-tag">Tasas de Crecimiento · Proporciones</span>
+          <p>La media geométrica es la raíz n-ésima del producto de todos los valores. Se utiliza principalmente cuando los datos representan tasas de crecimiento, proporciones o relaciones multiplicativas.</p>
+          <p>Es menos sensible a valores extremos que la media aritmética y es ideal cuando los datos tienen una distribución asimétrica positiva o crecen de forma exponencial.</p>
+          <div class="formula-box">
+            <div class="formula-text">MG = (x₁ × x₂ × ... × xₙ)^(1/n)</div>
+          </div>
+          <p style="font-size:0.85rem;"><strong>Cuándo usarla:</strong> Tasas de interés compuesto, crecimiento poblacional, rendimiento de inversiones.</p>
+        </div>
+        <div class="calc-box reveal">
+          <h4>Calculadora Interactiva</h4>
+          <div class="calc-input-wrap">
+            <label>Ingresa los datos (todos deben ser positivos)</label>
+            <input class="calc-input" id="geomInput" type="text" placeholder="2, 8, 32" value="2, 8, 32">
+          </div>
+          <button class="calc-btn" onclick="calcGeom()">Calcular MG →</button>
+          <div class="calc-result" id="geomResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEDIANA -->
+    <div class="tab-panel" id="tab-mediana">
+      <div class="measure-layout">
+        <div class="measure-info reveal">
+          <h3>Mediana</h3>
+          <span class="measure-tag">Valor Central Posicional</span>
+          <p>La mediana es el valor que ocupa el lugar central cuando los datos están ordenados de menor a mayor. Divide la distribución en dos partes iguales: el 50% de los datos están por debajo y el 50% por encima.</p>
+          <p><strong>Si n es impar:</strong> Es el valor del centro. <strong>Si n es par:</strong> Es el promedio de los dos valores centrales.</p>
+          <div class="formula-box">
+            <div class="formula-text">Posición = (n + 1) / 2</div>
+          </div>
+          <p style="font-size:0.85rem;"><strong>Ventaja:</strong> No es afectada por valores extremos. Ideal para datos de ingresos, precios de vivienda.</p>
+        </div>
+        <div class="calc-box reveal">
+          <h4>Calculadora Interactiva</h4>
+          <div class="calc-input-wrap">
+            <label>Ingresa los datos separados por comas</label>
+            <input class="calc-input" id="medianaInput" type="text" placeholder="3, 5, 7, 9, 11" value="3, 5, 7, 9, 11">
+          </div>
+          <button class="calc-btn" onclick="calcMediana()">Calcular Mediana →</button>
+          <div class="calc-result" id="medianaResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODA -->
+    <div class="tab-panel" id="tab-moda">
+      <div class="measure-layout">
+        <div class="measure-info reveal">
+          <h3>Moda</h3>
+          <span class="measure-tag">Valor Más Frecuente</span>
+          <p>La moda es el valor que aparece con mayor frecuencia en un conjunto de datos. Es la única medida de tendencia central que puede aplicarse a variables cualitativas.</p>
+          <p>Un conjunto puede tener: <strong>una moda (unimodal)</strong>, <strong>dos modas (bimodal)</strong>, <strong>más de dos (multimodal)</strong>, o ser <strong>amodal</strong> si ningún valor se repite.</p>
+          <div class="formula-box">
+            <div class="formula-text">Mo = valor con mayor frecuencia (f)</div>
+          </div>
+          <p style="font-size:0.85rem;"><strong>Usos:</strong> Talla más vendida, color preferido, error más común, producto más comprado.</p>
+        </div>
+        <div class="calc-box reveal">
+          <h4>Calculadora Interactiva</h4>
+          <div class="calc-input-wrap">
+            <label>Ingresa los datos separados por comas</label>
+            <input class="calc-input" id="modaInput" type="text" placeholder="2, 3, 3, 4, 5, 3, 6" value="2, 3, 3, 4, 5, 3, 6">
+          </div>
+          <button class="calc-btn" onclick="calcModa()">Calcular Moda →</button>
+          <div class="calc-result" id="modaResult"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DISPERSIÓN -->
+<section id="dispersion" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">05 · Variabilidad</span>
+      <h2 class="section-title">Medidas de <em>Dispersión</em></h2>
+    </div>
+
+    <p class="reveal" style="text-align:center; color:var(--text2); max-width:600px; margin:0 auto 3rem; line-height:1.8;">
+      Las medidas de dispersión indican qué tan alejados o concentrados están los datos respecto a la tendencia central. Complementan a la media y la mediana.
+    </p>
+
+    <div class="disp-grid">
+      <div class="disp-card reveal">
+        <span class="disp-value">R</span>
+        <div class="disp-name">Rango</div>
+        <div class="disp-desc">Diferencia entre el valor máximo y el mínimo. Es la medida más simple de dispersión.<br><br><strong style="color:var(--text); font-family:'Space Mono',monospace; font-size:0.8rem;">R = Xmax − Xmin</strong></div>
+      </div>
+
+      <div class="disp-card reveal">
+        <span class="disp-value">σ²</span>
+        <div class="disp-name">Varianza</div>
+        <div class="disp-desc">Promedio de los cuadrados de las desviaciones respecto a la media. Mide la dispersión promedio al cuadrado.<br><br><strong style="color:var(--text); font-family:'Space Mono',monospace; font-size:0.8rem;">σ² = Σ(xᵢ − x̄)² / n</strong></div>
+      </div>
+
+      <div class="disp-card reveal">
+        <span class="disp-value">σ</span>
+        <div class="disp-name">Desviación Estándar</div>
+        <div class="disp-desc">Raíz cuadrada de la varianza. Es la medida más utilizada; está en las mismas unidades que los datos originales.<br><br><strong style="color:var(--text); font-family:'Space Mono',monospace; font-size:0.8rem;">σ = √(varianza)</strong></div>
+      </div>
+
+      <div class="disp-card reveal">
+        <span class="disp-value">CV</span>
+        <div class="disp-name">Coeficiente de Variación</div>
+        <div class="disp-desc">Relación entre la desviación estándar y la media, expresada en porcentaje. Permite comparar dispersión entre conjuntos con diferentes unidades.<br><br><strong style="color:var(--text); font-family:'Space Mono',monospace; font-size:0.8rem;">CV = (σ / x̄) × 100%</strong></div>
+      </div>
+
+      <div class="disp-card reveal">
+        <span class="disp-value">Q</span>
+        <div class="disp-name">Cuartiles</div>
+        <div class="disp-desc">Valores que dividen los datos ordenados en cuatro partes iguales. Q1 (25%), Q2 (50% = mediana), Q3 (75%).<br><br><strong style="color:var(--text); font-family:'Space Mono',monospace; font-size:0.8rem;">IQR = Q3 − Q1</strong></div>
+      </div>
+
+      <div class="disp-card reveal">
+        <span class="disp-value">Z</span>
+        <div class="disp-name">Puntaje Z</div>
+        <div class="disp-desc">Indica cuántas desviaciones estándar está un dato por encima o por debajo de la media. Útil para detectar valores atípicos.<br><br><strong style="color:var(--text); font-family:'Space Mono',monospace; font-size:0.8rem;">Z = (x − x̄) / σ</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GRÁFICOS -->
+<section id="graficos" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">06 · Visualización</span>
+      <h2 class="section-title">Representación <em>Gráfica</em></h2>
+    </div>
+
+    <div class="charts-grid reveal">
+      <div class="chart-card">
+        <span class="chart-icon">📊</span>
+        <div class="chart-name">Barras</div>
+        <div class="chart-use">Comparar categorías cualitativas entre sí</div>
+      </div>
+      <div class="chart-card">
+        <span class="chart-icon">📉</span>
+        <div class="chart-name">Histograma</div>
+        <div class="chart-use">Distribución de datos cuantitativos continuos</div>
+      </div>
+      <div class="chart-card">
+        <span class="chart-icon">🥧</span>
+        <div class="chart-name">Circular</div>
+        <div class="chart-use">Proporciones y porcentajes del total</div>
+      </div>
+      <div class="chart-card">
+        <span class="chart-icon">〰️</span>
+        <div class="chart-name">Polígono</div>
+        <div class="chart-use">Tendencia de datos agrupados</div>
+      </div>
+      <div class="chart-card">
+        <span class="chart-icon">📦</span>
+        <div class="chart-name">Boxplot</div>
+        <div class="chart-use">Distribución, mediana y valores atípicos</div>
+      </div>
+      <div class="chart-card">
+        <span class="chart-icon">📍</span>
+        <div class="chart-name">Dispersión</div>
+        <div class="chart-use">Relación entre dos variables cuantitativas</div>
+      </div>
+      <div class="chart-card">
+        <span class="chart-icon">🌊</span>
+        <div class="chart-name">Ojiva</div>
+        <div class="chart-use">Frecuencias acumuladas de datos agrupados</div>
+      </div>
+      <div class="chart-card">
+        <span class="chart-icon">🌡️</span>
+        <div class="chart-name">Mapa de Calor</div>
+        <div class="chart-use">Patrones en matrices de datos bidimensionales</div>
+      </div>
+    </div>
+
+    <!-- DEMO INTERACTIVA -->
+    <div class="chart-demo-wrap reveal">
+      <div class="chart-demo-header">
+        <h3>Demo Interactiva de Gráficos</h3>
+        <div class="chart-type-selector">
+          <button class="chart-type-btn active" onclick="setChartType('bar', this)">Barras</button>
+          <button class="chart-type-btn" onclick="setChartType('hist', this)">Histograma</button>
+          <button class="chart-type-btn" onclick="setChartType('line', this)">Línea</button>
+          <button class="chart-type-btn" onclick="setChartType('pie', this)">Circular</button>
+        </div>
+      </div>
+      <canvas id="chartCanvas"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- GLOSARIO -->
+<section id="glosario" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">07 · Referencia</span>
+      <h2 class="section-title">Glosario <em>Esencial</em></h2>
+    </div>
+
+    <div class="glossary-grid">
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Dato</div>
+        <div class="gloss-def">Valor específico que toma una variable en un elemento o unidad de observación determinada.</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Variable</div>
+        <div class="gloss-def">Característica medible u observable de cada elemento de la población o muestra.</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Frecuencia Absoluta</div>
+        <div class="gloss-def">Número de veces que un valor o categoría aparece en el conjunto de datos (fᵢ).</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Frecuencia Relativa</div>
+        <div class="gloss-def">Proporción que representa cada valor respecto al total: hᵢ = fᵢ / n.</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Frecuencia Acumulada</div>
+        <div class="gloss-def">Suma de todas las frecuencias hasta un valor determinado. Útil para calcular percentiles.</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Parámetro</div>
+        <div class="gloss-def">Medida numérica que describe una característica de toda la población (μ, σ).</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Estadístico</div>
+        <div class="gloss-def">Medida calculada a partir de una muestra que estima el parámetro poblacional (x̄, s).</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Sesgo</div>
+        <div class="gloss-def">Asimetría en la distribución de datos. Puede ser positivo (cola derecha) o negativo (cola izquierda).</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Outlier / Valor Atípico</div>
+        <div class="gloss-def">Dato que se aleja significativamente del resto de la distribución. Puede distorsionar la media.</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Distribución Normal</div>
+        <div class="gloss-def">Distribución simétrica en forma de campana donde media, mediana y moda coinciden en el centro.</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Percentil</div>
+        <div class="gloss-def">Valor por debajo del cual cae un porcentaje determinado de los datos. El P50 equivale a la mediana.</div>
+      </div>
+      <div class="gloss-item reveal">
+        <div class="gloss-term">Tabla de Frecuencias</div>
+        <div class="gloss-def">Organización tabular de los datos que muestra cada valor y su frecuencia absoluta, relativa y acumulada.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="section-pad">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-tag">08 · Evaluación</span>
+      <h2 class="section-title">Quiz <em>Interactivo</em></h2>
+    </div>
+
+    <div class="quiz-box reveal">
+      <div id="quizContent">
+        <div class="quiz-progress" id="quizProgress"></div>
+        <span class="quiz-q-num" id="qNum">Pregunta 1 de 8</span>
+        <div class="quiz-question" id="qText"></div>
+        <div class="quiz-options" id="qOptions"></div>
+        <div class="quiz-feedback" id="qFeedback"></div>
+        <div class="quiz-nav">
+          <span class="quiz-score" id="qScore">Puntos: 0 / 0</span>
+          <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none;">Siguiente →</button>
+        </div>
+      </div>
+      <div class="quiz-result" id="quizResult">
+        <span class="score-big" id="finalScore">0/8</span>
+        <span class="score-label">Tu Resultado Final</span>
+        <p id="resultMsg"></p>
+        <button class="btn btn-primary" onclick="restartQuiz()">Reiniciar Quiz ↺</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <span class="footer-logo">Estadística Descriptiva</span>
+    <p class="footer-text">
+      Material educativo elaborado con base en el Diseño Curricular del SENA<br>
+      Tecnologías de la Información y las Comunicaciones · Gestión de la Información
+    </p>
+    <div class="footer-bottom">
+      <p>© 2025 · SENA · Programa de Formación Titulada</p>
+      <p>Estadística Descriptiva · Módulo Educativo Interactivo</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =============================================
+   CURSOR — Símbolo Estadístico
+============================================= */
+const cursor = document.getElementById('cursor');
+const follower = document.getElementById('cursorFollower');
+const cursorSymbol = document.getElementById('cursorSymbol');
+let mx = 0, my = 0;
+
+// Symbols that rotate every few seconds
+const statSymbols = ['Σ', 'μ', 'σ', 'x̄', 'Me', 'Mo', 'σ²', 'ρ'];
+const symbolColors = ['#00d4ff', '#7c5cfc', '#06d6a0', '#ffd166', '#ff6b6b', '#00d4ff', '#7c5cfc', '#06d6a0'];
+let symIdx = 0;
+
+// Cycle symbol every 2.5s
+setInterval(() => {
+  symIdx = (symIdx + 1) % statSymbols.length;
+  cursorSymbol.style.transform = 'scale(0)';
+  cursorSymbol.style.transition = 'transform 0.2s ease, color 0.3s';
+  setTimeout(() => {
+    cursorSymbol.textContent = statSymbols[symIdx];
+    cursorSymbol.style.color = symbolColors[symIdx];
+    cursorSymbol.style.filter = `drop-shadow(0 0 8px ${symbolColors[symIdx]}cc) drop-shadow(0 0 20px ${symbolColors[symIdx]}66)`;
+    cursorSymbol.style.transform = 'scale(1)';
+  }, 200);
+}, 2500);
+
+// Trail dots
+let lastTrailX = 0, lastTrailY = 0;
+function spawnTrail(x, y) {
+  if (Math.hypot(x - lastTrailX, y - lastTrailY) < 18) return;
+  lastTrailX = x; lastTrailY = y;
+  const dot = document.createElement('div');
+  dot.style.cssText = `
+    position: fixed; width: 5px; height: 5px;
+    border-radius: 50%;
+    background: ${symbolColors[symIdx]};
+    left: ${x}px; top: ${y}px;
+    pointer-events: none; z-index: 9990;
+    transform: translate(-50%,-50%);
+    opacity: 0.7;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  `;
+  document.body.appendChild(dot);
+  requestAnimationFrame(() => {
+    dot.style.opacity = '0';
+    dot.style.transform = 'translate(-50%,-50%) scale(0)';
+  });
+  setTimeout(() => dot.remove(), 500);
+}
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+  spawnTrail(mx, my);
+});
+
+// Follower with lag
+let fx = 0, fy = 0;
+function animFollower() {
+  fx += (mx - fx) * 0.12;
+  fy += (my - fy) * 0.12;
+  follower.style.left = fx + 'px';
+  follower.style.top = fy + 'px';
+  requestAnimationFrame(animFollower);
+}
+animFollower();
+
+// Scale up on hover over interactive elements
+document.querySelectorAll('a, button, .var-card, .disp-card, .chart-card, .quiz-option, .tab-btn').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursorSymbol.style.transform = 'scale(1.6)';
+    cursorSymbol.style.transition = 'transform 0.2s ease';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursorSymbol.style.transform = 'scale(1)';
+  });
+});
+
+/* =============================================
+   FLOATING NUMBERS
+============================================= */
+const floatNums = document.getElementById('floatingNums');
+const nums = ['∑', 'μ', 'σ', 'x̄', 'n', 'P', 'Q', 'R²', 'f', 'α', 'β', 'Δ', '∫', '%', 'Mo', 'Me'];
+
+for (let i = 0; i < 20; i++) {
+  const el = document.createElement('div');
+  el.className = 'floating-num';
+  el.textContent = nums[Math.floor(Math.random() * nums.length)];
+  el.style.left = Math.random() * 100 + '%';
+  el.style.animationDuration = (8 + Math.random() * 15) + 's';
+  el.style.animationDelay = (Math.random() * 10) + 's';
+  el.style.fontSize = (0.7 + Math.random() * 1.5) + 'rem';
+  floatNums.appendChild(el);
+}
+
+/* =============================================
+   RING ANIMATION
+============================================= */
+const ringLabels = ['Datos', 'Análisis', 'Patrones', 'Decisiones'];
+const ringData = [
+  { offset: 502 - 502 * 0.75, label: 'Recolección', sub: 'DATOS' },
+  { offset: 377 - 377 * 0.65, label: 'Organización', sub: 'ESTRUCTURA' },
+  { offset: 264 - 264 * 0.80, label: 'Resumen', sub: 'ANÁLISIS' },
+  { offset: 170 - 170 * 0.70, label: 'Presentación', sub: 'VISUALIZACIÓN' },
+];
+let ringIdx = 0;
+
+setTimeout(() => {
+  const r1 = document.getElementById('ring1');
+  const r2 = document.getElementById('ring2');
+  const r3 = document.getElementById('ring3');
+  const r4 = document.getElementById('ring4');
+
+  [r1,r2,r3,r4].forEach((r, i) => {
+    setTimeout(() => {
+      r.style.transition = 'stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1)';
+      r.style.strokeDashoffset = ringData[i].offset;
+    }, i * 200);
+  });
+
+  setInterval(() => {
+    ringIdx = (ringIdx + 1) % ringData.length;
+    document.getElementById('ringLabel').textContent = ringData[ringIdx].label;
+    document.getElementById('ringSub').textContent = ringData[ringIdx].sub;
+  }, 2000);
+}, 500);
+
+/* =============================================
+   POPULATION DOTS
+============================================= */
+const popDots = document.getElementById('popDots');
+const sampleIndices = new Set();
+while (sampleIndices.size < 20) {
+  sampleIndices.add(Math.floor(Math.random() * 80));
+}
+
+for (let i = 0; i < 80; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'pop-dot ' + (sampleIndices.has(i) ? 'sample' : 'population');
+  dot.title = sampleIndices.has(i) ? 'Elemento de la muestra' : 'Elemento de la población';
+  popDots.appendChild(dot);
+}
+
+/* =============================================
+   SCROLL REVEAL
+============================================= */
+const revealEls = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), 0);
+    }
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => observer.observe(el));
+
+/* =============================================
+   TABS
+============================================= */
+function showTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* =============================================
+   CALCULADORAS
+============================================= */
+function parseNums(id) {
+  return document.getElementById(id).value
+    .split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+}
+
+function showResult(id, html) {
+  const el = document.getElementById(id);
+  el.innerHTML = html;
+  el.classList.add('show');
+}
+
+function calcMedia() {
+  const data = parseNums('mediaInput');
+  if (!data.length) return;
+  const sum = data.reduce((a, b) => a + b, 0);
+  const mean = sum / data.length;
+  const sorted = [...data].sort((a, b) => a - b);
+  showResult('mediaResult', `
+    <div class="result-row"><span class="result-label">n (cantidad de datos)</span><span class="result-value">${data.length}</span></div>
+    <div class="result-row"><span class="result-label">Suma total</span><span class="result-value">${sum.toFixed(4)}</span></div>
+    <div class="result-row"><span class="result-label">Media (x̄)</span><span class="result-value">${mean.toFixed(4)}</span></div>
+    <div class="result-row"><span class="result-label">Datos ordenados</span><span class="result-value" style="font-size:0.7rem;">${sorted.join(', ')}</span></div>
+  `);
+}
+
+function calcGeom() {
+  const data = parseNums('geomInput');
+  if (!data.length || data.some(v => v <= 0)) {
+    document.getElementById('geomResult').innerHTML = '<p style="color:var(--accent3); font-size:0.85rem;">⚠ Todos los valores deben ser positivos.</p>';
+    document.getElementById('geomResult').classList.add('show');
+    return;
+  }
+  const product = data.reduce((a, b) => a * b, 1);
+  const mg = Math.pow(product, 1 / data.length);
+  showResult('geomResult', `
+    <div class="result-row"><span class="result-label">n</span><span class="result-value">${data.length}</span></div>
+    <div class="result-row"><span class="result-label">Producto (∏xᵢ)</span><span class="result-value">${product.toFixed(4)}</span></div>
+    <div class="result-row"><span class="result-label">Media Geométrica</span><span class="result-value">${mg.toFixed(4)}</span></div>
+  `);
+}
+
+function calcMediana() {
+  const data = parseNums('medianaInput');
+  if (!data.length) return;
+  const sorted = [...data].sort((a, b) => a - b);
+  let mediana, tipo;
+  if (sorted.length % 2 === 1) {
+    mediana = sorted[Math.floor(sorted.length / 2)];
+    tipo = 'n impar → valor central';
+  } else {
+    const m1 = sorted[sorted.length / 2 - 1];
+    const m2 = sorted[sorted.length / 2];
+    mediana = (m1 + m2) / 2;
+    tipo = `n par → promedio de ${m1} y ${m2}`;
+  }
+  showResult('medianaResult', `
+    <div class="result-row"><span class="result-label">Datos ordenados</span><span class="result-value" style="font-size:0.7rem;">${sorted.join(', ')}</span></div>
+    <div class="result-row"><span class="result-label">Tipo</span><span class="result-value" style="font-size:0.7rem;">${tipo}</span></div>
+    <div class="result-row"><span class="result-label">Mediana (Me)</span><span class="result-value">${mediana}</span></div>
+  `);
+}
+
+function calcModa() {
+  const data = parseNums('modaInput');
+  if (!data.length) return;
+  const freq = {};
+  data.forEach(v => freq[v] = (freq[v] || 0) + 1);
+  const maxFreq = Math.max(...Object.values(freq));
+  const modas = Object.entries(freq).filter(([k, v]) => v === maxFreq).map(([k]) => k);
+  let tipo;
+  if (maxFreq === 1) tipo = 'Amodal (ningún valor se repite)';
+  else if (modas.length === 1) tipo = 'Unimodal';
+  else if (modas.length === 2) tipo = 'Bimodal';
+  else tipo = 'Multimodal';
+  showResult('modaResult', `
+    <div class="result-row"><span class="result-label">Frecuencia máxima</span><span class="result-value">${maxFreq}</span></div>
+    <div class="result-row"><span class="result-label">Tipo</span><span class="result-value" style="font-size:0.75rem;">${tipo}</span></div>
+    <div class="result-row"><span class="result-label">Moda(s)</span><span class="result-value">${maxFreq === 1 ? '—' : modas.join(', ')}</span></div>
+  `);
+}
+
+/* =============================================
+   INTERACTIVE CHART
+============================================= */
+let currentChartType = 'bar';
+const chartCanvas = document.getElementById('chartCanvas');
+const ctx = chartCanvas.getContext('2d');
+
+chartCanvas.width = chartCanvas.offsetWidth;
+chartCanvas.height = 280;
+
+const chartColors = ['#7c5cfc', '#00d4ff', '#06d6a0', '#ffd166', '#ff6b6b', '#f72585'];
+
+const datasets = {
+  bar: {
+    labels: ['Estadística', 'Álgebra', 'Cálculo', 'Física', 'Química', 'Biología'],
+    values: [85, 72, 68, 79, 63, 91],
+    title: 'Promedio de calificaciones por materia'
+  },
+  hist: {
+    labels: ['[0-10]', '[10-20]', '[20-30]', '[30-40]', '[40-50]', '[50-60]', '[60-70]', '[70-80]'],
+    values: [2, 5, 12, 18, 25, 20, 13, 5],
+    title: 'Histograma: Distribución de edades'
+  },
+  line: {
+    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago'],
+    values: [120, 145, 132, 178, 195, 210, 188, 225],
+    title: 'Ventas mensuales (en miles)'
+  },
+  pie: {
+    labels: ['Nominal', 'Ordinal', 'Discreta', 'Continua'],
+    values: [25, 25, 25, 25],
+    title: 'Distribución de tipos de variables'
+  }
+};
+
+function drawChart() {
+  const d = datasets[currentChartType];
+  const w = chartCanvas.width;
+  const h = chartCanvas.height;
+
+  ctx.clearRect(0, 0, w, h);
+
+  if (currentChartType === 'pie') {
+    drawPie(d, w, h);
+  } else if (currentChartType === 'line') {
+    drawLine(d, w, h);
+  } else {
+    drawBar(d, w, h);
+  }
+}
+
+function drawBar(d, w, h) {
+  const pad = { top: 40, right: 20, bottom: 60, left: 50 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+  const max = Math.max(...d.values);
+  const bw = cw / d.values.length;
+
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  ctx.fillRect(pad.left, pad.top, cw, ch);
+
+  // Grid lines
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.top + ch - (i / 5) * ch;
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(pad.left + cw, y);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(157,155,191,0.7)';
+    ctx.font = '10px Space Mono, monospace';
+    ctx.fillText(Math.round((i / 5) * max), pad.left - 30, y + 4);
+  }
+
+  d.values.forEach((v, i) => {
+    const bh = (v / max) * ch;
+    const x = pad.left + i * bw + bw * 0.1;
+    const y = pad.top + ch - bh;
+    const bwActual = bw * 0.8;
+
+    const gradient = ctx.createLinearGradient(x, y, x, y + bh);
+    gradient.addColorStop(0, chartColors[i % chartColors.length]);
+    gradient.addColorStop(1, chartColors[i % chartColors.length] + '55');
+    ctx.fillStyle = gradient;
+
+    // Rounded top
+    const r = 6;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + bwActual - r, y);
+    ctx.quadraticCurveTo(x + bwActual, y, x + bwActual, y + r);
+    ctx.lineTo(x + bwActual, y + bh);
+    ctx.lineTo(x, y + bh);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.fill();
+
+    // Value label
+    ctx.fillStyle = chartColors[i % chartColors.length];
+    ctx.font = 'bold 11px DM Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(v, x + bwActual / 2, y - 6);
+
+    // X label
+    ctx.fillStyle = 'rgba(157,155,191,0.8)';
+    ctx.font = '9px DM Sans, sans-serif';
+    ctx.fillText(d.labels[i], x + bwActual / 2, pad.top + ch + 18);
+  });
+
+  ctx.fillStyle = 'rgba(157,155,191,0.6)';
+  ctx.font = '11px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(d.title, w / 2, 20);
+}
+
+function drawLine(d, w, h) {
+  const pad = { top: 40, right: 20, bottom: 60, left: 60 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+  const max = Math.max(...d.values) * 1.1;
+  const min = Math.min(...d.values) * 0.9;
+
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  ctx.fillRect(pad.left, pad.top, cw, ch);
+
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.top + (i / 5) * ch;
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(pad.left + cw, y);
+    ctx.stroke();
+    const val = Math.round(max - (i / 5) * (max - min));
+    ctx.fillStyle = 'rgba(157,155,191,0.7)';
+    ctx.font = '10px Space Mono, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(val, pad.left - 6, y + 4);
+  }
+
+  const points = d.values.map((v, i) => ({
+    x: pad.left + (i / (d.values.length - 1)) * cw,
+    y: pad.top + ch - ((v - min) / (max - min)) * ch
+  }));
+
+  // Area fill
+  const areaGradient = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
+  areaGradient.addColorStop(0, 'rgba(0,212,255,0.15)');
+  areaGradient.addColorStop(1, 'rgba(0,212,255,0)');
+
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, pad.top + ch);
+  points.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(points[points.length - 1].x, pad.top + ch);
+  ctx.fillStyle = areaGradient;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) {
+    const cp1x = (points[i-1].x + points[i].x) / 2;
+    ctx.bezierCurveTo(cp1x, points[i-1].y, cp1x, points[i].y, points[i].x, points[i].y);
+  }
+  ctx.strokeStyle = '#00d4ff';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Dots
+  points.forEach((p, i) => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#00d4ff';
+    ctx.fill();
+    ctx.strokeStyle = '#0a0a0f';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#00d4ff';
+    ctx.font = '10px DM Sans';
+    ctx.textAlign = 'center';
+    ctx.fillText(d.values[i], p.x, p.y - 10);
+
+    ctx.fillStyle = 'rgba(157,155,191,0.8)';
+    ctx.font = '9px DM Sans';
+    ctx.fillText(d.labels[i], p.x, pad.top + ch + 18);
+  });
+
+  ctx.fillStyle = 'rgba(157,155,191,0.6)';
+  ctx.font = '11px DM Sans';
+  ctx.textAlign = 'center';
+  ctx.fillText(d.title, w / 2, 20);
+}
+
+function drawPie(d, w, h) {
+  const cx = w / 2, cy = h / 2;
+  const radius = Math.min(cx, cy) - 40;
+  const total = d.values.reduce((a, b) => a + b, 0);
+  let startAngle = -Math.PI / 2;
+
+  d.values.forEach((v, i) => {
+    const sliceAngle = (v / total) * 2 * Math.PI;
+    const midAngle = startAngle + sliceAngle / 2;
+
+    // Shadow
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = chartColors[i % chartColors.length] + '60';
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = chartColors[i % chartColors.length];
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // White gap
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.strokeStyle = '#0a0a0f';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Donut hole
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius * 0.45, 0, Math.PI * 2);
+    ctx.fillStyle = '#0a0a0f';
+    ctx.fill();
+
+    // Labels
+    const lx = cx + (radius * 0.75) * Math.cos(midAngle);
+    const ly = cy + (radius * 0.75) * Math.sin(midAngle);
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 12px DM Sans';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.round((v / total) * 100) + '%', lx, ly + 4);
+
+    startAngle += sliceAngle;
+  });
+
+  // Center text
+  ctx.fillStyle = 'rgba(157,155,191,0.8)';
+  ctx.font = 'bold 14px Playfair Display, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Variables', cx, cy - 5);
+  ctx.font = '10px DM Sans';
+  ctx.fillText('Estadísticas', cx, cy + 12);
+
+  // Legend
+  const legendX = 20;
+  d.labels.forEach((l, i) => {
+    const ly = h - 70 + i * 18;
+    ctx.beginPath();
+    ctx.rect(legendX, ly - 8, 10, 10);
+    ctx.fillStyle = chartColors[i % chartColors.length];
+    ctx.fill();
+    ctx.fillStyle = 'rgba(157,155,191,0.8)';
+    ctx.font = '10px DM Sans';
+    ctx.textAlign = 'left';
+    ctx.fillText(l, legendX + 16, ly);
+  });
+}
+
+function setChartType(type, btn) {
+  currentChartType = type;
+  document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  drawChart();
+}
+
+window.addEventListener('resize', () => {
+  chartCanvas.width = chartCanvas.offsetWidth;
+  drawChart();
+});
+
+setTimeout(drawChart, 300);
+
+/* =============================================
+   QUIZ
+============================================= */
+const questions = [
+  {
+    q: "¿Cuál es el objetivo principal de la estadística descriptiva?",
+    opts: ["Hacer inferencias sobre la población", "Describir y resumir datos sin ir más allá del conjunto analizado", "Predecir el futuro con modelos matemáticos", "Probar hipótesis estadísticas complejas"],
+    answer: 1,
+    fb: "✓ Correcto. La estadística descriptiva describe las características del conjunto de datos analizado, sin hacer inferencias más allá de él. Para inferir sobre la población, se usa la estadística inferencial."
+  },
+  {
+    q: "¿Cuál de estas es una variable cualitativa ordinal?",
+    opts: ["Temperatura corporal", "Ciudad de nacimiento", "Nivel de satisfacción (bajo, medio, alto)", "Número de hijos"],
+    answer: 2,
+    fb: "✓ Exacto. El nivel de satisfacción (bajo, medio, alto) tiene un orden jerárquico definido, lo que la hace cualitativa ordinal. Las variables nominales (como ciudad) no tienen orden."
+  },
+  {
+    q: "Si los datos son: 4, 6, 8, 10, 12 ¿Cuál es la media aritmética?",
+    opts: ["6", "8", "10", "7"],
+    answer: 1,
+    fb: "✓ ¡Bien! La media = (4+6+8+10+12) / 5 = 40/5 = 8. Es la suma de todos los valores dividida entre el número de datos."
+  },
+  {
+    q: "¿Qué medida de tendencia central NO es afectada por los valores extremos (outliers)?",
+    opts: ["Media aritmética", "Media geométrica", "Mediana", "Promedio ponderado"],
+    answer: 2,
+    fb: "✓ Correcto. La mediana es el valor central posicional y no se ve afectada por valores extremos. Por eso se prefiere para datos de ingresos o precios de vivienda."
+  },
+  {
+    q: "En el conjunto 2, 3, 3, 4, 5, 3, 6 ¿Qué tipo de distribución tiene respecto a la moda?",
+    opts: ["Amodal", "Bimodal", "Unimodal (Mo=3)", "Multimodal"],
+    answer: 2,
+    fb: "✓ Correcto. El valor 3 se repite 3 veces (mayor frecuencia), es el único valor modal. Con una sola moda se llama distribución unimodal."
+  },
+  {
+    q: "¿Para qué tipo de datos se usa principalmente la media geométrica?",
+    opts: ["Datos de temperatura", "Tasas de crecimiento y proporciones multiplicativas", "Calificaciones académicas", "Edades de la población"],
+    answer: 1,
+    fb: "✓ Exacto. La media geométrica es ideal para datos que representan tasas de crecimiento, rendimientos de inversiones o cualquier relación multiplicativa entre valores."
+  },
+  {
+    q: "¿Qué mide la desviación estándar (σ)?",
+    opts: ["El valor más frecuente del conjunto", "La diferencia entre el máximo y el mínimo", "Qué tan dispersos están los datos respecto a la media", "El valor central del conjunto ordenado"],
+    answer: 2,
+    fb: "✓ Perfecto. La desviación estándar mide la dispersión promedio de los datos respecto a la media. Un σ bajo indica datos muy concentrados; uno alto, datos muy dispersos."
+  },
+  {
+    q: "¿Qué tipo de gráfico es ideal para mostrar la distribución de una variable cuantitativa continua?",
+    opts: ["Gráfico de barras", "Gráfico circular (pastel)", "Histograma", "Diagrama de dispersión"],
+    answer: 2,
+    fb: "✓ ¡Excelente! El histograma muestra la distribución de frecuencias de datos cuantitativos continuos agrupados en intervalos (clases). Las barras se muestran contiguas (sin espacio)."
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let answered = false;
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('qNum').textContent = `Pregunta ${currentQ + 1} de ${questions.length}`;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('qScore').textContent = `Puntos: ${score} / ${currentQ}`;
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('qFeedback').className = 'quiz-feedback';
+  document.getElementById('qFeedback').textContent = '';
+  answered = false;
+
+  // Progress
+  const prog = document.getElementById('quizProgress');
+  prog.innerHTML = '';
+  questions.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'quiz-prog-dot' + (i < currentQ ? ' done' : i === currentQ ? ' current' : '');
+    prog.appendChild(dot);
+  });
+
+  // Options
+  const opts = document.getElementById('qOptions');
+  opts.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  q.opts.forEach((opt, i) => {
+    const el = document.createElement('div');
+    el.className = 'quiz-option';
+    el.innerHTML = `<span class="opt-letter">${letters[i]}</span>${opt}`;
+    el.onclick = () => selectOption(i);
+    opts.appendChild(el);
+  });
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentQ];
+  const opts = document.querySelectorAll('.quiz-option');
+  const fb = document.getElementById('qFeedback');
+
+  if (idx === q.answer) {
+    opts[idx].classList.add('correct');
+    score++;
+    fb.textContent = q.fb;
+    fb.className = 'quiz-feedback correct-fb show';
+  } else {
+    opts[idx].classList.add('wrong');
+    opts[q.answer].classList.add('correct');
+    fb.textContent = '✗ Incorrecto. ' + q.fb;
+    fb.className = 'quiz-feedback wrong-fb show';
+  }
+
+  document.getElementById('qScore').textContent = `Puntos: ${score} / ${currentQ + 1}`;
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= questions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  document.getElementById('quizContent').style.display = 'none';
+  const result = document.getElementById('quizResult');
+  result.classList.add('show');
+  document.getElementById('finalScore').textContent = score + '/' + questions.length;
+
+  const pct = (score / questions.length) * 100;
+  let msg;
+  if (pct === 100) msg = '¡Perfecto! 🏆 Dominas completamente la estadística descriptiva. Eres un experto en el tema. ¡Excelente trabajo!';
+  else if (pct >= 75) msg = '¡Muy bien! 🎯 Tienes un sólido conocimiento de la estadística descriptiva. Repasa los conceptos donde fallaste para alcanzar la perfección.';
+  else if (pct >= 50) msg = '¡Buen intento! 📚 Tienes una base, pero hay conceptos importantes que reforzar. Revisa las secciones de medidas de tendencia central y tipos de variables.';
+  else msg = '💡 No te rindas. La estadística descriptiva requiere práctica. Te recomendamos repasar todo el material y volver a intentarlo. ¡Tú puedes!';
+
+  document.getElementById('resultMsg').textContent = msg;
+}
+
+function restartQuiz() {
+  currentQ = 0; score = 0; answered = false;
+  document.getElementById('quizContent').style.display = 'block';
+  document.getElementById('quizResult').classList.remove('show');
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
