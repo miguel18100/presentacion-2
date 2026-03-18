@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación · Estadística Descriptiva · SENA</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --surface: #16161f;
+    --surface2: #1e1e2a;
+    --accent: #7c5cfc;
+    --accent2: #00d4ff;
+    --accent3: #ff6b6b;
+    --accent4: #ffd166;
+    --accent5: #06d6a0;
+    --text: #f0eeff;
+    --text2: #9d9bbf;
+    --border: rgba(124,92,252,0.2);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+    padding: 1rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    backdrop-filter: blur(20px);
+    background: rgba(10,10,15,0.7);
+    border-bottom: 1px solid rgba(124,92,252,0.1);
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .nav-badge {
+    font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.2em;
+    color: var(--accent); background: rgba(124,92,252,0.1);
+    border: 1px solid var(--border); padding: 0.3rem 0.8rem; border-radius: 100px;
+  }
+  /* HERO */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+    padding: 6rem 2rem 4rem; position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,92,252,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,212,255,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 20% 60%, rgba(255,107,107,0.06) 0%, transparent 50%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(124,92,252,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(124,92,252,0.05) 1px,transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  }
+  .hero-content { position: relative; z-index: 2; max-width: 720px; }
+  .hero-tag {
+    font-family: 'Space Mono', monospace; font-size: 0.68rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--accent); background: rgba(124,92,252,0.1);
+    border: 1px solid var(--border); padding: 0.4rem 1.2rem; border-radius: 100px;
+    display: inline-block; margin-bottom: 2rem; animation: fadeDown 0.8s ease both;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 8vw, 5.5rem); font-weight: 900; line-height: 1.05;
+    margin-bottom: 1.5rem; animation: fadeDown 0.8s 0.1s ease both;
+  }
+  .hero-title span {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent5) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero-subtitle {
+    font-size: 1rem; color: var(--text2); line-height: 1.7;
+    margin-bottom: 2.5rem; animation: fadeDown 0.8s 0.2s ease both;
+  }
+  .hero-stats {
+    display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 3rem; animation: fadeDown 0.8s 0.25s ease both;
+  }
+  .hstat { text-align: center; }
+  .hstat-num {
+    font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    display: block;
+  }
+  .hstat-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--text2); text-transform: uppercase; }
+  /* CONFIG */
+  .config-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 2.5rem; max-width: 560px; width: 100%; margin: 0 auto;
+    animation: fadeDown 0.8s 0.3s ease both;
+  }
+  .config-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; }
+  .config-row { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .config-field { flex: 1; min-width: 140px; }
+  .config-field label, .input-wrap label {
+    display: block; font-family: 'Space Mono', monospace; font-size: 0.62rem;
+    letter-spacing: 0.15em; color: var(--text2); text-transform: uppercase; margin-bottom: 0.5rem;
+  }
+  .config-select, .config-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.75rem 1rem; color: var(--text);
+    font-family: 'Space Mono', monospace; font-size: 0.8rem; outline: none;
+    transition: border-color 0.2s; appearance: none; cursor: pointer;
+  }
+  .config-select:focus, .config-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,92,252,0.15); }
+  .input-wrap { margin-bottom: 1.2rem; }
+
+  .start-btn {
+    width: 100%; background: linear-gradient(135deg, var(--accent), #5a3de0);
+    color: white; border: none; border-radius: 12px; padding: 1rem;
+    font-family: 'Space Mono', monospace; font-size: 0.82rem; letter-spacing: 0.15em;
+    text-transform: uppercase; cursor: pointer; margin-top: 0.5rem; transition: all 0.3s;
+    box-shadow: 0 0 30px rgba(124,92,252,0.3);
+  }
+  .start-btn:hover { transform: translateY(-3px); box-shadow: 0 0 50px rgba(124,92,252,0.5); }
+  /* QUIZ SECTION */
+  .quiz-section { display: none; min-height: 100vh; padding: 6rem 2rem 4rem; position: relative; }
+  .quiz-section.active { display: block; }
+  .quiz-bg {
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 30% 20%, rgba(124,92,252,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 70% 80%, rgba(0,212,255,0.05) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  .quiz-container { max-width: 780px; margin: 0 auto; position: relative; z-index: 1; }
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 2.5rem; }
+  .progress-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem; }
+  .prog-label { font-family: 'Space Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; color: var(--text2); text-transform: uppercase; }
+  .prog-score { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--accent2); font-weight: 700; }
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 100px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 12px rgba(0,212,255,0.5);
+  }
+  .dots-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.8rem; }
+  .qdot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface2); border: 1px solid rgba(124,92,252,0.2); transition: all 0.3s; }
+  .qdot.done-correct { background: var(--accent5); border-color: var(--accent5); }
+  .qdot.done-wrong   { background: var(--accent3); border-color: var(--accent3); }
+  .qdot.current { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  /* QUESTION CARD */
+  .q-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 24px; padding: 2.5rem; margin-bottom: 2rem;
+    position: relative; overflow: hidden;
+    animation: cardIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes cardIn { from { opacity:0; transform:translateY(30px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .q-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent5));
+    border-radius: 24px 24px 0 0;
+  }
+  .q-category {
+    font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .q-category::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+  .q-text { font-family: 'Playfair Display', serif; font-size: clamp(1.05rem,2.5vw,1.35rem); font-weight: 700; line-height: 1.45; }
+  .q-num-badge {
+    position: absolute; top: 1.5rem; right: 1.5rem;
+    font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--text2);
+    background: var(--surface2); padding: 0.3rem 0.8rem; border-radius: 100px; border: 1px solid var(--border);
+  }
+  /* OPTIONS */
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
+  .opt-btn {
+    background: var(--surface2); border: 1.5px solid rgba(124,92,252,0.15);
+    border-radius: 14px; padding: 1.1rem 1.2rem; cursor: pointer; text-align: left;
+    display: flex; align-items: flex-start; gap: 0.8rem; transition: all 0.25s ease;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.92rem; line-height: 1.5;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(124,92,252,0.08); transform: translateX(4px); }
+  .opt-letter {
+    font-family: 'Space Mono', monospace; font-size: 0.72rem; font-weight: 700;
+    color: var(--accent); background: rgba(124,92,252,0.12); border-radius: 6px;
+    padding: 0.2rem 0.5rem; flex-shrink: 0; margin-top: 2px; min-width: 28px;
+    text-align: center; transition: all 0.25s;
+  }
+  .opt-btn.correct { border-color: var(--accent5); background: rgba(6,214,160,0.1); }
+  .opt-btn.correct .opt-letter { background: var(--accent5); color: #0a0a0f; }
+  .opt-btn.wrong { border-color: var(--accent3); background: rgba(255,107,107,0.1); }
+  .opt-btn.wrong .opt-letter { background: var(--accent3); color: white; }
+  .opt-btn:disabled { cursor: default; transform: none; }
+  /* FEEDBACK */
+  .feedback-box {
+    background: var(--surface2); border-radius: 14px; padding: 1.2rem 1.5rem;
+    border-left: 4px solid transparent; display: none;
+    animation: fadeIn 0.35s ease; margin-bottom: 1.5rem;
+    font-size: 0.92rem; line-height: 1.6; color: var(--text2);
+  }
+  .feedback-box.show { display: block; }
+  .feedback-box.correct-fb { border-color: var(--accent5); background: rgba(6,214,160,0.07); }
+  .feedback-box.wrong-fb   { border-color: var(--accent3); background: rgba(255,107,107,0.07); }
+  /* NEXT BTN */
+  .next-btn {
+    background: linear-gradient(135deg, var(--accent), #5a3de0); color: white;
+    border: none; border-radius: 12px; padding: 0.9rem 2.5rem;
+    font-family: 'Space Mono', monospace; font-size: 0.78rem; letter-spacing: 0.1em;
+    text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+    box-shadow: 0 0 25px rgba(124,92,252,0.3); display: none;
+  }
+  .next-btn.show { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .next-btn:hover { transform: translateY(-3px); box-shadow: 0 0 40px rgba(124,92,252,0.5); }
+  .next-btn-wrap { text-align: right; }
+  /* TIMER */
+  .timer-display { font-family: 'Space Mono', monospace; font-size: 0.85rem; color: var(--accent4); }
+  .timer-display.urgent { color: var(--accent3); animation: pulse 0.5s ease infinite alternate; }
+  @keyframes pulse { from { opacity:1; } to { opacity:0.4; } }
+  /* RESULT */
+  .result-section { display: none; padding: 6rem 2rem 4rem; min-height: 100vh; text-align: center; position: relative; }
+  .result-section.active { display: block; }
+  .result-inner { max-width: 700px; margin: 0 auto; position: relative; z-index: 1; }
+  .result-tag {
+    font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--accent4); background: rgba(255,209,102,0.1);
+    border: 1px solid rgba(255,209,102,0.2); padding: 0.4rem 1.2rem; border-radius: 100px;
+    display: inline-block; margin-bottom: 2rem; animation: fadeDown 0.6s ease both;
+  }
+  .result-score-big {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(4rem,15vw,9rem); font-weight: 900; line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent5));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 0.5rem; animation: scoreIn 0.8s 0.2s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes scoreIn { from { opacity:0; transform:scale(0.5); } to { opacity:1; transform:scale(1); } }
+  .result-pct { font-family: 'Space Mono', monospace; font-size: 1.1rem; color: var(--text2); margin-bottom: 2rem; animation: fadeDown 0.6s 0.4s ease both; }
+  .result-msg {
+    font-size: 1.05rem; color: var(--text2); line-height: 1.7; max-width: 500px;
+    margin: 0 auto 2.5rem; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 1.5rem 2rem; animation: fadeDown 0.6s 0.5s ease both;
+  }
+  .result-breakdown {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem;
+    margin-bottom: 2.5rem; animation: fadeDown 0.6s 0.55s ease both;
+  }
+  .breakdown-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; }
+  .bc-value { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; display: block; margin-bottom: 0.3rem; }
+  .bc-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text2); text-transform: uppercase; }
+  .restart-btn {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border);
+    border-radius: 12px; padding: 0.9rem 2rem;
+    font-family: 'Space Mono', monospace; font-size: 0.78rem; letter-spacing: 0.1em;
+    text-transform: uppercase; cursor: pointer; transition: all 0.3s; margin-right: 1rem;
+    animation: fadeDown 0.6s 0.6s ease both;
+  }
+  .restart-btn:hover { border-color: var(--accent); background: rgba(124,92,252,0.1); }
+  .new-quiz-btn {
+    background: linear-gradient(135deg, var(--accent), #5a3de0); color: white;
+    border: none; border-radius: 12px; padding: 0.9rem 2rem;
+    font-family: 'Space Mono', monospace; font-size: 0.78rem; letter-spacing: 0.1em;
+    text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+    box-shadow: 0 0 25px rgba(124,92,252,0.3); animation: fadeDown 0.6s 0.6s ease both;
+  }
+  .new-quiz-btn:hover { transform: translateY(-3px); box-shadow: 0 0 40px rgba(124,92,252,0.5); }
+  .medal { font-size: 3rem; margin-bottom: 0.5rem; animation: fadeDown 0.6s 0.3s ease both; display: block; }
+  /* REVIEW */
+  .review-section { max-width: 780px; margin: 3rem auto 0; text-align: left; animation: fadeDown 0.8s 0.7s ease both; }
+  .review-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; text-align: center; }
+  .review-item { background: var(--surface); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; border-left: 4px solid var(--border); }
+  .review-item.rev-correct { border-color: var(--accent5); }
+  .review-item.rev-wrong   { border-color: var(--accent3); }
+  .review-q { font-size: 0.95rem; margin-bottom: 0.8rem; font-weight: 500; }
+  .review-ans { font-family: 'Space Mono', monospace; font-size: 0.75rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+  .rev-your { color: var(--accent3); }
+  .rev-correct-ans { color: var(--accent5); }
+  /* ANIMATIONS */
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-15px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeIn   { from { opacity:0; transform:translateY(6px);  } to { opacity:1; transform:translateY(0); } }
+  @media (max-width: 640px) { .result-breakdown { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">Estadística Descriptiva</div>
+  <span class="nav-badge">SENA · Evaluación</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="heroSection">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <span class="hero-tag">📊 Evaluación formativa · 2025</span>
+    <h1 class="hero-title">Pon a prueba<br><span>tus conocimientos</span></h1>
+    <p class="hero-subtitle">
+      Banco de <strong>50 preguntas rotativas</strong> sobre estadística descriptiva. Cada evaluación es única — las preguntas y opciones se mezclan aleatoriamente para que no haya dos evaluaciones iguales.
+    </p>
+    <div class="hero-stats">
+      <div class="hstat"><span class="hstat-num">50</span><span class="hstat-label">Preguntas en banco</span></div>
+      <div class="hstat"><span class="hstat-num">7</span><span class="hstat-label">Categorías</span></div>
+      <div class="hstat"><span class="hstat-num">∞</span><span class="hstat-label">Combinaciones</span></div>
+    </div>
+    <div class="config-panel">
+      <h2 class="config-title">⚙️ Configura tu evaluación</h2>
+      <div class="input-wrap">
+        <label>Tu nombre (opcional)</label>
+        <input class="config-input" type="text" id="studentName" placeholder="Ej: María González">
+      </div>
+      <div class="config-row">
+        <div class="config-field">
+          <label>N° de preguntas</label>
+          <select class="config-select" id="numQuestions">
+            <option value="5">5 preguntas (rápida)</option>
+            <option value="10" selected>10 preguntas (estándar)</option>
+            <option value="15">15 preguntas (completa)</option>
+            <option value="20">20 preguntas (examen)</option>
+            <option value="50">50 preguntas (todo el banco)</option>
+          </select>
+        </div>
+
+      </div>
+      <button class="start-btn" id="startBtn">🚀 Iniciar evaluación</button>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section class="quiz-section" id="quizSection">
+  <div class="quiz-bg"></div>
+  <div class="quiz-container">
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <div>
+          <span class="prog-label" id="progLabel">Pregunta 1 de 10</span>
+          <span id="studentLabel" style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--text2);margin-left:0.8rem;"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <div style="display:none;align-items:center;gap:0.5rem;" id="timerWrap">
+            <span style="font-size:0.75rem;">⏱</span>
+            <span class="timer-display" id="timerDisplay">00:00</span>
+          </div>
+          <span class="prog-score" id="progScore">Puntaje: 0 / 0</span>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="dots-row" id="dotsRow"></div>
+    </div>
+    <div class="q-card" id="qCard">
+      <span class="q-num-badge" id="qNumBadge">#1</span>
+      <div class="q-category" id="qCategory">Categoría</div>
+      <p class="q-text" id="qText">Texto de la pregunta</p>
+    </div>
+    <div class="options-grid" id="optionsGrid"></div>
+    <div class="feedback-box" id="feedbackBox"></div>
+    <div class="next-btn-wrap">
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Siguiente →</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULT -->
+<section class="result-section" id="resultSection">
+  <div class="quiz-bg"></div>
+  <div class="result-inner">
+    <span class="medal" id="medalEl">🏆</span>
+    <span class="result-tag">Evaluación completada</span>
+    <div class="result-score-big" id="resultScoreBig">8/10</div>
+    <div class="result-pct" id="resultPct">80% de respuestas correctas</div>
+    <div class="result-msg" id="resultMsg"></div>
+    <div class="result-breakdown">
+      <div class="breakdown-card"><span class="bc-value" id="bcCorrect" style="color:var(--accent5)">0</span><span class="bc-label">✓ Correctas</span></div>
+      <div class="breakdown-card"><span class="bc-value" id="bcWrong" style="color:var(--accent3)">0</span><span class="bc-label">✗ Incorrectas</span></div>
+      <div class="breakdown-card"><span class="bc-value" id="bcTime" style="color:var(--accent4)">—</span><span class="bc-label">⏱ Tiempo total</span></div>
+    </div>
+    <div>
+      <button class="restart-btn" onclick="restartSame()">↺ Repetir mismas preguntas</button>
+      <button class="new-quiz-btn" onclick="newQuiz()">✦ Nueva evaluación aleatoria</button>
+    </div>
+    <div class="review-section" id="reviewSection">
+      <h3 class="review-title">📋 Revisión de respuestas</h3>
+      <div id="reviewItems"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* =========================================================
+   BANCO DE 50 PREGUNTAS
+========================================================= */
+const BANCO = [
+  // DEFINICIÓN (7)
+  { cat:"definicion", catLabel:"Definición y conceptos",
+    q:"¿Cuál es el objetivo principal de la estadística descriptiva?",
+    opts:["Hacer inferencias sobre la población","Describir y resumir datos sin ir más allá del conjunto analizado","Predecir el futuro con modelos matemáticos","Probar hipótesis estadísticas complejas"],
+    answer:1, fb:"La estadística descriptiva describe y resume las características del conjunto de datos analizado, sin hacer inferencias más allá de ese conjunto. Para inferir sobre la población se usa la estadística inferencial." },
+  { cat:"definicion", catLabel:"Definición y conceptos",
+    q:"¿En qué se diferencia la estadística descriptiva de la inferencial?",
+    opts:["La descriptiva usa fórmulas más complejas","La descriptiva resume los datos existentes; la inferencial saca conclusiones sobre la población a partir de una muestra","La inferencial solo trabaja con datos cualitativos","No hay diferencia, son lo mismo"],
+    answer:1, fb:"La estadística descriptiva se limita a organizar, resumir y presentar datos. La inferencial va más allá: usa la muestra para hacer generalizaciones o predicciones sobre la población." },
+  { cat:"definicion", catLabel:"Definición y conceptos",
+    q:"¿Qué es una población en estadística?",
+    opts:["El conjunto de individuos de una ciudad","El total de elementos sobre los que se quiere obtener información","Una muestra representativa de datos","Los datos numéricos de un estudio"],
+    answer:1, fb:"En estadística, la población es el conjunto completo de elementos (personas, objetos, medidas) sobre los que se desea obtener información o sacar conclusiones." },
+  { cat:"definicion", catLabel:"Definición y conceptos",
+    q:"¿Qué es una muestra estadística?",
+    opts:["Un subconjunto representativo de la población","El total de la población estudiada","Un tipo de gráfica estadística","Una medida de dispersión"],
+    answer:0, fb:"Una muestra es un subconjunto seleccionado de la población. Debe ser representativa para que los resultados obtenidos puedan generalizarse." },
+  { cat:"definicion", catLabel:"Definición y conceptos",
+    q:"¿Cómo se llama el valor que indica cuántas veces aparece un dato en un conjunto?",
+    opts:["Media","Frecuencia absoluta","Varianza","Rango"],
+    answer:1, fb:"La frecuencia absoluta indica cuántas veces aparece un determinado valor dentro del conjunto de datos." },
+  { cat:"definicion", catLabel:"Definición y conceptos",
+    q:"La frecuencia relativa es:",
+    opts:["El número de veces que aparece un dato","El cociente entre la frecuencia absoluta y el total de datos","La diferencia entre el mayor y el menor valor","La suma de todas las frecuencias"],
+    answer:1, fb:"Frecuencia relativa = frecuencia absoluta ÷ n. Expresa la proporción del valor respecto al total (se puede expresar como decimal o porcentaje)." },
+  { cat:"definicion", catLabel:"Definición y conceptos",
+    q:"¿Qué representa la frecuencia acumulada?",
+    opts:["La moda de los datos","La suma de las frecuencias absolutas hasta ese valor","El promedio de las frecuencias","La frecuencia del dato más repetido"],
+    answer:1, fb:"La frecuencia acumulada es la suma de las frecuencias absolutas de todos los valores hasta el valor considerado. Permite saber cuántos datos son ≤ a cierto valor." },
+
+  // VARIABLES (8)
+  { cat:"variables", catLabel:"Tipos de variables",
+    q:"¿Cuál de estas es una variable cualitativa ordinal?",
+    opts:["Temperatura corporal","Ciudad de nacimiento","Nivel de satisfacción (bajo, medio, alto)","Número de hijos"],
+    answer:2, fb:"El nivel de satisfacción (bajo, medio, alto) es cualitativa ordinal porque tiene un orden jerárquico definido. Las variables nominales (como ciudad) no tienen orden." },
+  { cat:"variables", catLabel:"Tipos de variables",
+    q:"¿Cuál de estos es un ejemplo de variable cuantitativa continua?",
+    opts:["Número de estudiantes en una clase","Talla (estatura) de una persona","Número de vehículos en un parqueadero","Resultado de lanzar un dado"],
+    answer:1, fb:"La estatura es continua porque puede tomar cualquier valor en un rango (ej: 1.72 m, 1.725 m). Las variables discretas solo toman valores enteros contables." },
+  { cat:"variables", catLabel:"Tipos de variables",
+    q:"El número de hijos de una persona es una variable:",
+    opts:["Cualitativa nominal","Cuantitativa continua","Cuantitativa discreta","Cualitativa ordinal"],
+    answer:2, fb:"El número de hijos es cuantitativa discreta: es numérica pero solo admite valores enteros no negativos (0, 1, 2, 3…)." },
+  { cat:"variables", catLabel:"Tipos de variables",
+    q:"El género (masculino / femenino / otro) es una variable:",
+    opts:["Cuantitativa continua","Cualitativa nominal","Cuantitativa discreta","Cualitativa ordinal"],
+    answer:1, fb:"El género es cualitativa nominal: es categórica y sus valores no tienen un orden definido entre sí." },
+  { cat:"variables", catLabel:"Tipos de variables",
+    q:"¿Cuál de las siguientes es una variable cuantitativa discreta?",
+    opts:["Peso de un paquete en kg","Número de llamadas recibidas en un día","Temperatura ambiente","Ingresos mensuales en pesos"],
+    answer:1, fb:"El número de llamadas es discreta: solo puede tomar valores enteros (0, 1, 2...). No tiene sentido decir '2.5 llamadas'." },
+  { cat:"variables", catLabel:"Tipos de variables",
+    q:"La temperatura en grados Celsius corresponde a la escala de medición:",
+    opts:["Nominal","Ordinal","De intervalo","De razón"],
+    answer:2, fb:"La temperatura en Celsius es de intervalo: los intervalos son iguales, pero el cero es arbitrario. La escala de razón sí tiene un cero absoluto (ej: temperatura en Kelvin)." },
+  { cat:"variables", catLabel:"Tipos de variables",
+    q:"¿Cuál es la diferencia entre escala nominal y ordinal?",
+    opts:["La ordinal tiene un cero absoluto","La ordinal tiene un orden definido entre categorías; la nominal no","La nominal admite operaciones aritméticas","No hay diferencia práctica"],
+    answer:1, fb:"La nominal solo clasifica sin orden (colores, género). La ordinal clasifica CON un orden significativo (bajo-medio-alto), pero sin garantizar intervalos iguales." },
+  { cat:"variables", catLabel:"Tipos de variables",
+    q:"El peso de un recién nacido en gramos es una variable:",
+    opts:["Cualitativa ordinal","Cuantitativa discreta","Cuantitativa continua","Cualitativa nominal"],
+    answer:2, fb:"El peso es cuantitativa continua: puede tomar cualquier valor en un rango (3240.5 g, 3241 g…). Se mide con instrumentos de precisión." },
+
+  // TENDENCIA CENTRAL (12)
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"Si los datos son 4, 6, 8, 10, 12 ¿Cuál es la media aritmética?",
+    opts:["6","8","10","7"],
+    answer:1, fb:"Media = (4+6+8+10+12) / 5 = 40/5 = 8. Es la suma de todos los valores dividida entre la cantidad de datos." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"¿Qué medida de tendencia central NO es afectada por los valores extremos?",
+    opts:["Media aritmética","Media geométrica","Mediana","Promedio ponderado"],
+    answer:2, fb:"La mediana es el valor central posicional. Al no depender de la magnitud de los datos, no se ve distorsionada por valores extremos (outliers)." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"En el conjunto 2, 3, 3, 4, 5, 3, 6 ¿Cuál es la moda?",
+    opts:["2","4","3","5"],
+    answer:2, fb:"La moda es el valor que más se repite. El 3 aparece 3 veces, mayor que cualquier otro valor." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"¿Para qué tipo de datos se usa principalmente la media geométrica?",
+    opts:["Datos de temperatura","Tasas de crecimiento y proporciones multiplicativas","Calificaciones académicas","Edades de la población"],
+    answer:1, fb:"La media geométrica es ideal para tasas de crecimiento, rendimientos de inversiones o cualquier relación multiplicativa entre valores." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"Para los datos 3, 7, 7, 2, 9 ¿Cuál es la mediana?",
+    opts:["7","5.6","2","6"],
+    answer:0, fb:"Se ordenan: 2, 3, 7, 7, 9. Con 5 datos (impar), la mediana es el valor central (posición 3): Mediana = 7." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"Para los datos 4, 6, 8, 10 (n par) ¿cuál es la mediana?",
+    opts:["8","7","6","9"],
+    answer:1, fb:"Con número par de datos, la mediana es el promedio de los dos valores centrales: (6+8)/2 = 7." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"Un conjunto tiene moda=5, mediana=7, media=12. ¿Qué implica esto sobre la distribución?",
+    opts:["Los datos están perfectamente simétricos","Hay valores muy altos que elevan la media (sesgo positivo)","Hay valores muy bajos que reducen la media","Los datos están bien distribuidos"],
+    answer:1, fb:"Cuando media > mediana > moda, la distribución tiene sesgo positivo (cola derecha). Valores extremadamente altos jalan la media hacia arriba." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"El conjunto 2, 3, 3, 4, 5, 3, 6 tiene una distribución:",
+    opts:["Amodal","Bimodal","Unimodal","Multimodal"],
+    answer:2, fb:"El valor 3 se repite 3 veces (frecuencia máxima) y es el único valor modal. Con una sola moda se llama unimodal." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"En el conjunto 1, 2, 2, 3, 4, 4 ¿cuántas modas hay?",
+    opts:["Una: 2","Una: 4","Dos: 2 y 4 (bimodal)","No tiene moda"],
+    answer:2, fb:"Los valores 2 y 4 aparecen cada uno 2 veces, que es la frecuencia máxima. Al haber dos modas, la distribución es bimodal." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"La media ponderada se usa cuando:",
+    opts:["Todos los datos tienen la misma importancia","Algunos datos tienen mayor peso que otros","Los datos son cualitativos","No hay valores extremos"],
+    answer:1, fb:"La media ponderada asigna un peso diferente a cada valor según su importancia. Ej: nota final con diferentes porcentajes por materia." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"La fórmula de la media aritmética es:",
+    opts:["Σx / (n-1)","Σx / n","ⁿ√(x₁·x₂·...·xₙ)","Valor que más se repite"],
+    answer:1, fb:"Media aritmética (x̄) = Σx / n: la suma de todos los valores dividida entre el número total de datos n." },
+  { cat:"tendencia", catLabel:"Medidas de tendencia central",
+    q:"Las notas de 5 estudiantes son 3.0, 4.5, 5.0, 2.5, 4.0. ¿Cuál es el promedio?",
+    opts:["3.8","3.0","4.0","4.5"],
+    answer:0, fb:"Media = (3.0+4.5+5.0+2.5+4.0) / 5 = 19.0 / 5 = 3.8" },
+
+  // DISPERSIÓN (10)
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"¿Qué mide la desviación estándar (σ)?",
+    opts:["El valor más frecuente","La diferencia entre máximo y mínimo","Qué tan dispersos están los datos respecto a la media","El valor central del conjunto ordenado"],
+    answer:2, fb:"La desviación estándar mide la dispersión promedio de los datos respecto a la media. σ bajo = datos concentrados; σ alto = datos dispersos." },
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"¿Qué es el rango (recorrido) de un conjunto de datos?",
+    opts:["La suma de todos los datos","La diferencia entre el valor máximo y el mínimo","La distancia entre el primer y tercer cuartil","El promedio de los extremos"],
+    answer:1, fb:"Rango = Valor máximo − Valor mínimo. Es la medida de dispersión más simple, pero muy sensible a valores atípicos." },
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"Para los datos 5, 5, 5, 5, 5 ¿Cuál es la desviación estándar?",
+    opts:["5","1","25","0"],
+    answer:3, fb:"Cuando todos los datos son iguales no hay dispersión alguna. La desviación estándar es 0 porque todos los valores son exactamente iguales a la media." },
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"La varianza (σ²) es:",
+    opts:["La raíz cuadrada de la desviación estándar","El promedio de las desviaciones al cuadrado respecto a la media","La distancia entre cuartiles","El cuadrado del rango"],
+    answer:1, fb:"La varianza = promedio de las diferencias al cuadrado entre cada dato y la media. La desviación estándar es σ = √(varianza)." },
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"¿Por qué se eleva al cuadrado en el cálculo de la varianza?",
+    opts:["Para hacer los valores más grandes","Para evitar que las desviaciones positivas y negativas se cancelen","Por convención sin razón práctica","Para facilitar el cálculo mental"],
+    answer:1, fb:"Sin elevar al cuadrado, las desviaciones positivas y negativas se cancelarían dando suma ≈ 0. Al cuadrado, todas las diferencias son positivas." },
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"El coeficiente de variación (CV) sirve para:",
+    opts:["Calcular la mediana en datos agrupados","Comparar la dispersión de conjuntos con diferentes unidades o escalas","Determinar la frecuencia acumulada","Calcular la media ponderada"],
+    answer:1, fb:"CV = (σ/x̄)×100. Expresa la desviación estándar como porcentaje de la media. Permite comparar dispersiones entre conjuntos con escalas distintas." },
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"¿Qué es el rango intercuartílico (RIC)?",
+    opts:["La diferencia entre media y mediana","La diferencia entre el tercer y el primer cuartil (Q3 − Q1)","El valor central de los datos","El doble de la desviación estándar"],
+    answer:1, fb:"RIC = Q3 − Q1. Mide la dispersión del 50% central de los datos y es resistente a valores atípicos, a diferencia del rango simple." },
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"Si σ = 0 ¿qué significa?",
+    opts:["Todos los datos son iguales entre sí","Los datos están muy dispersos","La media es cero","No se puede calcular la media"],
+    answer:0, fb:"Una desviación estándar de 0 significa que todos los valores del conjunto son idénticos: no existe variabilidad en los datos." },
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"¿Cuál es la relación entre varianza y desviación estándar?",
+    opts:["Son la misma cosa","La desviación estándar es la raíz cuadrada de la varianza","La varianza es la raíz cuadrada de la desviación estándar","No tienen relación"],
+    answer:1, fb:"σ = √(σ²). La desviación estándar es la raíz cuadrada de la varianza. Se usa más porque tiene las mismas unidades que los datos originales." },
+  { cat:"dispersion", catLabel:"Medidas de dispersión",
+    q:"Si la varianza de un conjunto es 16, ¿cuánto es la desviación estándar?",
+    opts:["8","4","256","√8"],
+    answer:1, fb:"σ = √(varianza) = √16 = 4." },
+
+  // GRÁFICOS (7)
+  { cat:"graficos", catLabel:"Representación gráfica",
+    q:"¿Qué tipo de gráfico es ideal para mostrar la distribución de una variable cuantitativa continua?",
+    opts:["Gráfico de barras","Gráfico circular (pastel)","Histograma","Diagrama de dispersión"],
+    answer:2, fb:"El histograma muestra la distribución de frecuencias de datos continuos agrupados en intervalos. Las barras son contiguas (sin espacio) porque los datos son continuos." },
+  { cat:"graficos", catLabel:"Representación gráfica",
+    q:"¿Para qué se usa el diagrama de dispersión?",
+    opts:["Para mostrar proporciones de un todo","Para visualizar la relación entre dos variables cuantitativas","Para comparar frecuencias de categorías","Para mostrar la distribución temporal de un dato"],
+    answer:1, fb:"El diagrama de dispersión usa puntos en un plano cartesiano para mostrar cómo se relacionan dos variables cuantitativas. Permite detectar correlaciones." },
+  { cat:"graficos", catLabel:"Representación gráfica",
+    q:"¿Cuándo es más apropiado usar un gráfico circular (pastel)?",
+    opts:["Para mostrar evolución de ventas en el tiempo","Para comparar partes de un todo con pocas categorías","Para distribuciones de datos continuos","Para mostrar dispersión entre dos variables"],
+    answer:1, fb:"El gráfico circular es ideal para proporciones de un todo (que sumen 100%) con pocas categorías (máx. 5-6). Con muchas categorías se vuelve difícil de leer." },
+  { cat:"graficos", catLabel:"Representación gráfica",
+    q:"La diferencia principal entre histograma y gráfico de barras es:",
+    opts:["El histograma es de colores; el de barras en blanco y negro","En el histograma las barras están juntas (datos continuos); en el de barras hay espacio entre ellas (categorías)","El gráfico de barras siempre es horizontal","No hay diferencia real"],
+    answer:1, fb:"En el histograma, barras contiguas representan intervalos continuos de una variable numérica. En el de barras, hay espacios porque cada barra representa una categoría separada." },
+  { cat:"graficos", catLabel:"Representación gráfica",
+    q:"¿Qué muestra una ojiva (polígono de frecuencias acumuladas)?",
+    opts:["La moda de los datos","Cómo se acumulan las frecuencias a medida que aumentan los valores","La diferencia entre cuartiles","La distribución simétrica de los datos"],
+    answer:1, fb:"La ojiva es una curva de frecuencias acumuladas. Permite leer visualmente qué porcentaje de datos está por debajo de cierto valor." },
+  { cat:"graficos", catLabel:"Representación gráfica",
+    q:"¿Qué tipo de gráfico se usa para mostrar la evolución de ventas mes a mes?",
+    opts:["Histograma","Diagrama de cajas","Gráfico de líneas","Gráfico circular"],
+    answer:2, fb:"El gráfico de líneas es ideal para series temporales (ventas mensuales, temperaturas diarias, etc.) porque muestra la tendencia en el tiempo." },
+  { cat:"graficos", catLabel:"Representación gráfica",
+    q:"¿Qué información resume un diagrama de cajas (box plot)?",
+    opts:["Solo la media y la moda","El mínimo, Q1, mediana, Q3, máximo y posibles outliers","Solo la dispersión estándar","Las frecuencias absolutas de cada dato"],
+    answer:1, fb:"El box plot resume cinco estadísticos: mínimo, Q1, mediana (Q2), Q3 y máximo. También muestra outliers como puntos aislados." },
+
+  // CÁLCULO (6)
+  { cat:"calculo", catLabel:"Cálculo estadístico",
+    q:"Datos: 10, 20, 30, 40, 50. ¿Cuál es el rango?",
+    opts:["30","40","50","10"],
+    answer:1, fb:"Rango = Máximo − Mínimo = 50 − 10 = 40." },
+  { cat:"calculo", catLabel:"Cálculo estadístico",
+    q:"Los datos ordenados son 1, 3, 5, 7, 9, 11. ¿Cuál es la mediana?",
+    opts:["5","6","7","5.5"],
+    answer:1, fb:"Con 6 datos (par), mediana = promedio de los dos centrales (posiciones 3 y 4): (5+7)/2 = 6." },
+  { cat:"calculo", catLabel:"Cálculo estadístico",
+    q:"¿Cuál es la media geométrica de 4 y 9?",
+    opts:["6","6.5","36","√13"],
+    answer:0, fb:"Media geométrica = ⁿ√(x₁·x₂·...·xₙ). Para 4 y 9: √(4×9) = √36 = 6." },
+  { cat:"calculo", catLabel:"Cálculo estadístico",
+    q:"Notas ponderadas: Matemáticas 4.0 (30%), Estadística 3.5 (40%), Inglés 5.0 (30%). ¿Cuál es el promedio ponderado?",
+    opts:["4.1","4.05","4.0","3.9"],
+    answer:0, fb:"Promedio = (4.0×0.30)+(3.5×0.40)+(5.0×0.30) = 1.2+1.4+1.5 = 4.1" },
+  { cat:"calculo", catLabel:"Cálculo estadístico",
+    q:"La media es 4.8 y la desviación estándar es 2.04. ¿Cuánto es el coeficiente de variación?",
+    opts:["42.5%","24.0%","10.2%","48.0%"],
+    answer:0, fb:"CV = (σ/x̄)×100 = (2.04/4.8)×100 ≈ 42.5%." },
+  { cat:"calculo", catLabel:"Cálculo estadístico",
+    q:"Datos: 2, 5, 5, 7, 11. ¿Cuál es la media aritmética?",
+    opts:["5","6","5.5","7"],
+    answer:1, fb:"Media = (2+5+5+7+11)/5 = 30/5 = 6." },
+
+  // APLICACIÓN (6)
+  { cat:"aplicacion", catLabel:"Aplicación práctica",
+    q:"El gobierno reporta la mediana de salarios en lugar de la media. ¿Por qué?",
+    opts:["La mediana es más fácil de calcular","La mediana no se ve distorsionada por salarios extremadamente altos","La media siempre es menor que la mediana","No hay razón estadística"],
+    answer:1, fb:"Unos pocos salarios muy altos distorsionan la media hacia arriba. La mediana representa mejor al trabajador típico." },
+  { cat:"aplicacion", catLabel:"Aplicación práctica",
+    q:"Máquina A: media=100 piezas/hora, σ=2. Máquina B: media=100 piezas/hora, σ=15. ¿Cuál es más consistente?",
+    opts:["Máquina B, porque produce igual en promedio","Máquina A, porque tiene menor dispersión","Son igual de buenas","No se puede comparar"],
+    answer:1, fb:"La Máquina A tiene σ=2, producción muy constante y predecible. La Máquina B varía mucho más alrededor de su media." },
+  { cat:"aplicacion", catLabel:"Aplicación práctica",
+    q:"Media de un examen = 6.5, σ = 0.3. ¿Qué indica un coeficiente de variación bajo?",
+    opts:["Los estudiantes tienen calificaciones muy dispersas","Las calificaciones son homogéneas, el grupo tiene rendimiento similar","La media es poco representativa","Hay muchos valores atípicos"],
+    answer:1, fb:"CV bajo indica datos agrupados cerca de la media. Los estudiantes tienen un nivel académico muy similar entre sí." },
+  { cat:"aplicacion", catLabel:"Aplicación práctica",
+    q:"Hay un apartamento de $5.000 millones entre inmuebles de $300-$500 millones. ¿Qué impacto tiene en la media?",
+    opts:["Ninguno, la media no se afecta por un solo valor","La sube considerablemente, haciéndola poco representativa","La baja considerablemente","Solo afecta la mediana"],
+    answer:1, fb:"Un outlier como $5.000 millones eleva notablemente la media, alejándola del precio real de la mayoría. La mediana sería más representativa aquí." },
+  { cat:"aplicacion", catLabel:"Aplicación práctica",
+    q:"¿Para qué sirve construir una tabla de distribución de frecuencias?",
+    opts:["Solo para calcular la media","Para organizar y resumir grandes conjuntos de datos en grupos o intervalos","Para probar hipótesis estadísticas","Para hacer predicciones sobre el futuro"],
+    answer:1, fb:"Una tabla de frecuencias organiza datos en clases o categorías mostrando cuántas veces aparece cada valor. Facilita el análisis de grandes conjuntos de datos." },
+  { cat:"aplicacion", catLabel:"Aplicación práctica",
+    q:"Una distribución tiene sesgo negativo (cola izquierda). ¿Cómo se ordenan media, mediana y moda?",
+    opts:["Media = Mediana = Moda","Media > Mediana > Moda","Moda > Mediana > Media","Mediana > Media > Moda"],
+    answer:2, fb:"En sesgo negativo, los valores bajos extremos jalan la media hacia abajo: Moda > Mediana > Media." }
+];
+
+/* =========================================================
+   ESTADO
+========================================================= */
+let selectedQuestions = [];
+let currentIdx = 0;
+let score = 0;
+let answered = false;
+let userAnswers = [];
+
+let timedMode = true;
+let timerInterval = null;
+let startTime = null;
+let totalElapsed = 0;
+
+
+});
+
+/* =========================================================
+   UTILS
+========================================================= */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function formatTime(secs) {
+  return String(Math.floor(secs/60)).padStart(2,'0') + ':' + String(secs%60).padStart(2,'0');
+}
+
+/* =========================================================
+   START
+========================================================= */
+document.getElementById('startBtn').addEventListener('click', startQuiz);
+
+function startQuiz() {
+  const numQ = parseInt(document.getElementById('numQuestions').value);
+  // timedMode always true
+
+  let pool = BANCO;
+  
+  // Shuffle pool, take numQ, then shuffle options for each question
+  selectedQuestions = shuffle(pool).slice(0, Math.min(numQ, pool.length)).map(q => {
+    const indexed = q.opts.map((opt, i) => ({ opt, isCorrect: i === q.answer }));
+    const shuffled = shuffle(indexed);
+    return { ...q, opts: shuffled.map(x => x.opt), answer: shuffled.findIndex(x => x.isCorrect) };
+  });
+
+  currentIdx = 0; score = 0; answered = false; userAnswers = [];
+  totalElapsed = 0; startTime = Date.now();
+
+  const name = document.getElementById('studentName').value.trim();
+  document.getElementById('studentLabel').textContent = name ? `· ${name}` : '';
+
+  document.getElementById('heroSection').style.display = 'none';
+  document.getElementById('quizSection').classList.add('active');
+  document.getElementById('resultSection').classList.remove('active');
+
+  if (timedMode) {
+    document.getElementById('timerWrap').style.display = 'flex';
+    timerInterval = setInterval(() => {
+      const el = document.getElementById('timerDisplay');
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      el.textContent = formatTime(elapsed);
+      el.className = 'timer-display' + (elapsed > 600 ? ' urgent' : '');
+    }, 1000);
+  } else {
+    document.getElementById('timerWrap').style.display = 'none';
+  }
+
+  buildDots();
+  renderQuestion();
+}
+
+/* =========================================================
+   DOTS
+========================================================= */
+function buildDots() {
+  const row = document.getElementById('dotsRow');
+  row.innerHTML = '';
+  selectedQuestions.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'qdot' + (i === 0 ? ' current' : '');
+    d.id = `dot-${i}`;
+    row.appendChild(d);
+  });
+}
+
+function updateDots(idx, wasCorrect) {
+  const prev = document.getElementById(`dot-${idx}`);
+  if (prev) prev.className = 'qdot ' + (wasCorrect ? 'done-correct' : 'done-wrong');
+  const next = document.getElementById(`dot-${idx + 1}`);
+  if (next) next.className = 'qdot current';
+}
+
+/* =========================================================
+   RENDER QUESTION
+========================================================= */
+function renderQuestion() {
+  const q = selectedQuestions[currentIdx];
+  const total = selectedQuestions.length;
+
+  document.getElementById('progLabel').textContent = `Pregunta ${currentIdx+1} de ${total}`;
+  document.getElementById('progScore').textContent = `Puntaje: ${score} / ${currentIdx}`;
+  document.getElementById('progressFill').style.width = `${(currentIdx/total)*100}%`;
+  document.getElementById('qNumBadge').textContent = `#${currentIdx+1}`;
+  document.getElementById('qCategory').textContent = q.catLabel;
+  document.getElementById('qText').textContent = q.q;
+
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box'; fb.textContent = '';
+
+  const nb = document.getElementById('nextBtn');
+  nb.className = 'next-btn';
+  nb.textContent = currentIdx < total-1 ? 'Siguiente →' : 'Ver resultado →';
+
+  answered = false;
+
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span>${opt}`;
+    btn.onclick = () => selectOption(i);
+    grid.appendChild(btn);
+  });
+
+  const card = document.getElementById('qCard');
+  card.style.animation = 'none'; card.offsetHeight; card.style.animation = '';
+}
+
+/* =========================================================
+   SELECT
+========================================================= */
+function selectOption(idx) {
+  if (answered) return;
+  answered = true;
+  const q = selectedQuestions[currentIdx];
+  const btns = document.querySelectorAll('.opt-btn');
+  const fb = document.getElementById('feedbackBox');
+  const correct = idx === q.answer;
+  if (correct) score++;
+
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[q.answer].classList.add('correct');
+  btns.forEach(b => b.disabled = true);
+
+  fb.textContent = (correct ? '✓ Correcto. ' : '✗ Incorrecto. ') + q.fb;
+  fb.className = 'feedback-box show ' + (correct ? 'correct-fb' : 'wrong-fb');
+  document.getElementById('progScore').textContent = `Puntaje: ${score} / ${currentIdx+1}`;
+  document.getElementById('nextBtn').className = 'next-btn show';
+
+  userAnswers.push({ q: q.q, yourIdx: idx, correctIdx: q.answer, opts: q.opts, correct });
+}
+
+/* =========================================================
+   NEXT
+========================================================= */
+function nextQuestion() {
+  const wasCorrect = userAnswers[currentIdx]?.correct ?? false;
+  updateDots(currentIdx, wasCorrect);
+  currentIdx++;
+  if (currentIdx >= selectedQuestions.length) showResult();
+  else renderQuestion();
+}
+
+/* =========================================================
+   RESULT
+========================================================= */
+function showResult() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  totalElapsed = Math.floor((Date.now() - startTime) / 1000);
+
+  document.getElementById('quizSection').classList.remove('active');
+  document.getElementById('resultSection').classList.add('active');
+
+  const total = selectedQuestions.length;
+  const pct = Math.round((score/total)*100);
+  const name = document.getElementById('studentLabel').textContent;
+
+  document.getElementById('resultScoreBig').textContent = `${score}/${total}`;
+  document.getElementById('resultPct').textContent = `${pct}% de respuestas correctas${name ? ' — ' + name.replace('· ','') : ''}`;
+  document.getElementById('bcCorrect').textContent = score;
+  document.getElementById('bcWrong').textContent = total - score;
+  document.getElementById('bcTime').textContent = formatTime(totalElapsed);
+
+  let medal, msg;
+  if (pct===100)     { medal='🏆'; msg='¡Perfecto! Dominas completamente la estadística descriptiva. Resultado sobresaliente.'; }
+  else if (pct>=85)  { medal='🥇'; msg='¡Excelente! Tienes un sólido dominio del tema. Repasa los puntos donde fallaste para alcanzar la perfección.'; }
+  else if (pct>=70)  { medal='🥈'; msg='¡Muy bien! Buen conocimiento general. Hay algunos temas que puedes reforzar. Revisa los conceptos donde fallaste.'; }
+  else if (pct>=50)  { medal='📚'; msg='Aprobado. Tienes una base, pero hay conceptos importantes que reforzar. Revisa medidas de tendencia central y dispersión.'; }
+  else               { medal='💡'; msg='Reprueba. No te rindas: la estadística requiere práctica. Revisa el material y vuelve a intentarlo. ¡Tú puedes!'; }
+
+  document.getElementById('medalEl').textContent = medal;
+  document.getElementById('resultMsg').textContent = msg;
+
+  const reviewContainer = document.getElementById('reviewItems');
+  reviewContainer.innerHTML = '';
+  userAnswers.forEach((a,i) => {
+    const div = document.createElement('div');
+    div.className = 'review-item ' + (a.correct ? 'rev-correct' : 'rev-wrong');
+    const letters = ['A','B','C','D'];
+    div.innerHTML = `
+      <div class="review-q"><strong>${i+1}.</strong> ${a.q}</div>
+      <div class="review-ans">
+        ${!a.correct ? `<span class="rev-your">Tu respuesta: ${letters[a.yourIdx]}. ${a.opts[a.yourIdx]}</span>` : ''}
+        <span class="rev-correct-ans">✓ Correcta: ${letters[a.correctIdx]}. ${a.opts[a.correctIdx]}</span>
+      </div>`;
+    reviewContainer.appendChild(div);
+  });
+}
+
+/* =========================================================
+   RESTART
+========================================================= */
+function restartSame() {
+  currentIdx = 0; score = 0; answered = false; userAnswers = [];
+  startTime = Date.now();
+
+  // Re-shuffle answers of same questions
+  selectedQuestions = selectedQuestions.map(q => {
+    const orig = BANCO.find(b => b.q === q.q);
+    if (!orig) return q;
+    const indexed = orig.opts.map((opt, i) => ({ opt, isCorrect: i === orig.answer }));
+    const shuffled = shuffle(indexed);
+    return { ...orig, opts: shuffled.map(x => x.opt), answer: shuffled.findIndex(x => x.isCorrect) };
+  });
+
+  document.getElementById('resultSection').classList.remove('active');
+  document.getElementById('quizSection').classList.add('active');
+
+  if (timedMode) {
+    document.getElementById('timerWrap').style.display = 'flex';
+    timerInterval = setInterval(() => {
+      const el = document.getElementById('timerDisplay');
+      const elapsed = Math.floor((Date.now()-startTime)/1000);
+      el.textContent = formatTime(elapsed);
+      el.className = 'timer-display' + (elapsed > 600 ? ' urgent' : '');
+    }, 1000);
+  }
+
+  buildDots();
+  renderQuestion();
+}
+
+function newQuiz() {
+  document.getElementById('resultSection').classList.remove('active');
+  document.getElementById('heroSection').style.display = '';
+  document.getElementById('quizSection').classList.remove('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
